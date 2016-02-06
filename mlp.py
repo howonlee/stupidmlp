@@ -73,11 +73,6 @@ class MLP:
             Z = np.random.random((self.layers[i].size,self.layers[i+1].size))
             self.weights[i][...] = (2*Z-1)*0.00001
 
-    def reset_pareto(self):
-        for i in range(len(self.weights)):
-            Z = np.random.pareto(1, size=(self.layers[i].size,self.layers[i+1].size))
-            self.weights[i][...] = Z * 0.000001
-
     def propagate_forward(self, data):
         ''' Propagate data from input layer to output layer. '''
 
@@ -139,14 +134,6 @@ class MLP:
         # Return error
         return (error**2).sum()
 
-
-def bitfield(n):
-    """
-    Don't care about the MLP results, so don't care about the output patterns
-    So let's do this
-    """
-    return np.array([n >> i & 1 for i in range(7,-1,-1)])
-
 def onehots(n):
     arr = np.array([-1.0] * 10)
     arr[n] = 1.0
@@ -170,17 +157,6 @@ def create_cifar_samples(filename="cifar-10-batches-py/data_batch_1"):
             # CIFAR is uint8s, but I would like floats
             samples[x] = cifar_dict["data"][x] / 256.0, onehots(cifar_dict["labels"][x])
     return samples, 3072
-
-def create_random_samples():
-    # only 500 datapoints, we don't even really need that many
-    # we are not using this net, so can just use training only
-    # big numerical problems with this one!
-    samples = np.zeros(50000, dtype=[('input',  float, 784), ('output', float, 10)])
-    for x in xrange(50000):
-        # try it with either one
-        samples[x] = npr.random(784), onehots(5)
-        # samples[x] = npr.random(784), onehots(npr.random_integers(1, 10))
-    return samples, 784
 
 def test_network(net, samples):
     correct, total = 0, 0
