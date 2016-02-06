@@ -165,7 +165,7 @@ def test_network(net, samples):
         if np.argmax(out) == np.argmax(out_pat):
             correct += 1
     # lots of less naive things out there
-    print "correct / total: ", correct, " / ", total
+    return float(correct) / float(total)
 
 # -----------------------------------------------------------------------------
 if __name__ == '__main__':
@@ -174,10 +174,13 @@ if __name__ == '__main__':
     sample_mats = []
     # downsample the sample mats
     network = MLP(dims,16,10)
+    test_accs = []
     for i in range(30000):
         if i % 50 == 25:
             print "pattern: ", i
+            test_accs.append(test_network(network, samples[40000:40500]))
         n = np.random.randint(samples.size)
         network.propagate_forward(samples['input'][n])
         network.propagate_backward(samples['output'][n])
-    test_network(network, samples[40000:40500])
+    plt.plot(test_accs)
+    plt.show()
