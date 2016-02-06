@@ -1,0 +1,5 @@
+cifar*
+*.gz
+*.txt
+*.pyc
+*.npy
