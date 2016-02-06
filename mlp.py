@@ -22,7 +22,7 @@ import numpy as np
 import numpy.random as npr
 import matplotlib.pyplot as plt
 import cPickle
-import powerlaw
+import time
 import random
 import gzip
 
@@ -45,6 +45,7 @@ class MLP:
 
         self.shape = args
         n = len(args)
+        self.bp_times = []
 
         # Build layers
         self.layers = []
@@ -105,6 +106,7 @@ class MLP:
 
     def propagate_backward(self, target, lrate=0.01):
         ''' Back propagate error related to target using lrate. '''
+        begin_time = time.clock()
 
         deltas = []
 
@@ -127,6 +129,8 @@ class MLP:
             self.dw[i] = dw
 
         # Return error
+        end_time = time.clock()
+        self.bp_times.append(end_time - begin_time)
         return (error**2).sum()
 
 def onehots(n):
@@ -173,14 +177,16 @@ if __name__ == '__main__':
     samples, dims = create_mnist_samples()
     sample_mats = []
     # downsample the sample mats
-    network = MLP(dims,16,10)
-    test_accs = []
-    for i in range(30000):
-        if i % 50 == 25:
-            print "pattern: ", i
-            test_accs.append(test_network(network, samples[40000:40500]))
-        n = np.random.randint(samples.size)
-        network.propagate_forward(samples['input'][n])
-        network.propagate_backward(samples['output'][n])
-    plt.plot(test_accs)
+    # network = MLP(dims,100,10)
+    networks = [MLP(dims, hids, 10) for hids in range(20, 100)]
+    times = []
+    for idx, curr_network in enumerate(networks):
+        for i in range(2000):
+            n = np.random.randint(samples.size)
+            curr_network.propagate_forward(samples['input'][n])
+            curr_network.propagate_backward(samples['output'][n])
+        curr_time = np.median(np.array(curr_network.bp_times))
+        print idx, curr_time
+        times.append(curr_time)
+    plt.plot(times)
     plt.show()
