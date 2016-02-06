@@ -103,7 +103,7 @@ class MLP:
         np.save(name, self.weights[0])
         print "weights saved"
 
-    def propagate_backward(self, target, delta_filename, lrate=0.01, momentum=0.01, save=False, kill_grad=False):
+    def propagate_backward(self, target, lrate=0.01):
         ''' Back propagate error related to target using lrate. '''
 
         deltas = []
@@ -122,18 +122,7 @@ class MLP:
         for i in range(len(self.weights)):
             layer = np.atleast_2d(self.layers[i])
             delta = np.atleast_2d(deltas[i])
-            if kill_grad:
-                # print "walla"
-                # print delta
-                # print (np.abs(delta) < 0.005).sum()
-                delta[np.abs(delta) < 0.005] = 0.0
             dw = np.dot(layer.T,delta)
-            if i == 0 and save:
-                np.save("layer", self.layers[i])
-                np.save(delta_filename, deltas[i])
-                np.save("grad_mat", dw)
-                print "layer, delta, dw saved"
-            # self.weights[i] += lrate*dw + momentum*self.dw[i]
             self.weights[i] += lrate*dw
             self.dw[i] = dw
 
@@ -165,9 +154,6 @@ def create_cifar_samples(filename="cifar-10-batches-py/data_batch_1"):
 def create_padded_mnist_samples(filename="mnist.pkl.gz"):
     pass
 
-def downsample(sample_mat, order):
-    pass
-
 def test_network(net, samples):
     correct, total = 0, 0
     for x in xrange(samples.shape[0]):
@@ -184,7 +170,14 @@ def test_network(net, samples):
 # -----------------------------------------------------------------------------
 if __name__ == '__main__':
     print "learning the patterns..."
-    samples, dims = create_padded_mnist_samples()
+    samples, dims = create_mnist_samples()
     sample_mats = []
     # downsample the sample mats
-    network = MLP(2,2,10)
+    network = MLP(dims,16,10)
+    for i in range(30000):
+        if i % 50 == 25:
+            print "pattern: ", i
+        n = np.random.randint(samples.size)
+        network.propagate_forward(samples['input'][n])
+        network.propagate_backward(samples['output'][n])
+    test_network(network, samples[40000:40500])
