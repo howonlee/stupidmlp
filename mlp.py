@@ -74,12 +74,6 @@ class MLP:
             Z = np.random.random((self.layers[i].size,self.layers[i+1].size))
             self.weights[i][...] = (2*Z-1)*0.00001
 
-    def expand(self):
-        """
-        Expand by 2x
-        """
-        pass
-
     def propagate_forward(self, data):
         ''' Propagate data from input layer to output layer. '''
 
@@ -161,21 +155,27 @@ def test_network(net, samples):
         total += 1
         in_pat = samples["input"][x]
         out_pat = samples["output"][x]
-        out = network.propagate_forward(in_pat)
-        # print np.argmax(out), np.argmax(out_pat)
+        out = net.propagate_forward(in_pat)
         if np.argmax(out) == np.argmax(out_pat):
             correct += 1
     # lots of less naive things out there
     return float(correct) / float(total)
 
+def test_conventional_net():
+    samples, dims = create_mnist_samples()
+    network = MLP(dims, 100, 10)
+    for i in xrange(20000):
+        n = np.random.randint(samples.size)
+        network.propagate_forward(samples['input'][n])
+        network.propagate_backward(samples['output'][n])
+    print test_network(network, samples[40000:40500])
+
 def profile_hidden_range():
     samples, dims = create_mnist_samples()
-    sample_mats = []
-    # downsample the sample mats
     networks = [MLP(dims, hids, 10) for hids in range(16, 128)]
     times = []
     for idx, curr_network in enumerate(networks):
-        for i in range(2000):
+        for i in xrange(2000):
             n = np.random.randint(samples.size)
             curr_network.propagate_forward(samples['input'][n])
             curr_network.propagate_backward(samples['output'][n])
@@ -186,8 +186,14 @@ def profile_hidden_range():
     plt.show()
 
 def profile_expando_range():
-    pass
-
+    samples, dims = create_mnist_samples()
+    network = MLP(dims, 16, 10)
+    for i in xrange(10000):
+        n = np.random.randint(samples.size)
+        network.propagate_forward(samples['input'][n])
+        network.propagate_backward(samples['output'][n])
+    plt.hist(np.abs(network.weights[0].ravel()))
+    plt.show()
 # -----------------------------------------------------------------------------
 if __name__ == '__main__':
-    profile_expando_range()
+    test_conventional_net()
