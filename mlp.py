@@ -177,8 +177,7 @@ if __name__ == '__main__':
     samples, dims = create_mnist_samples()
     sample_mats = []
     # downsample the sample mats
-    # network = MLP(dims,100,10)
-    networks = [MLP(dims, hids, 10) for hids in range(20, 100)]
+    networks = [MLP(dims, hids, 10) for hids in [16, 32, 64, 128, 256]]
     times = []
     for idx, curr_network in enumerate(networks):
         for i in range(2000):
@@ -187,6 +186,6 @@ if __name__ == '__main__':
             curr_network.propagate_backward(samples['output'][n])
         curr_time = np.median(np.array(curr_network.bp_times))
         print idx, curr_time
-        times.append(curr_time)
+        times.append(np.log(curr_time))
     plt.plot(times)
     plt.show()
