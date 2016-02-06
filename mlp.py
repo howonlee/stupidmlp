@@ -34,7 +34,7 @@ def dsigmoid(x):
     ''' Derivative of sigmoid above '''
     return 1.0-x**2
 
-class FractalMLP:
+class MLP:
     '''
     Multi-layer perceptron class.
     This is used via SGD only in the MNIST thing Howon rigged up
@@ -72,6 +72,12 @@ class FractalMLP:
         for i in range(len(self.weights)):
             Z = np.random.random((self.layers[i].size,self.layers[i+1].size))
             self.weights[i][...] = (2*Z-1)*0.00001
+
+    def expand(self):
+        """
+        Expand by 2x
+        """
+        pass
 
     def propagate_forward(self, data):
         ''' Propagate data from input layer to output layer. '''
@@ -159,7 +165,7 @@ def create_cifar_samples(filename="cifar-10-batches-py/data_batch_1"):
 def create_padded_mnist_samples(filename="mnist.pkl.gz"):
     pass
 
-def downsample(sample_mat):
+def downsample(sample_mat, order):
     pass
 
 def test_network(net, samples):
@@ -178,5 +184,7 @@ def test_network(net, samples):
 # -----------------------------------------------------------------------------
 if __name__ == '__main__':
     print "learning the patterns..."
-    samples, dims = create_mnist_samples()
-    network = FractalMLP(2,2,10)
+    samples, dims = create_padded_mnist_samples()
+    sample_mats = []
+    # downsample the sample mats
+    network = MLP(2,2,10)
