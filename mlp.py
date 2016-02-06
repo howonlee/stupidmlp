@@ -21,6 +21,7 @@
 import numpy as np
 import numpy.random as npr
 import matplotlib.pyplot as plt
+import scipy.sparse as sci_sp
 import cPickle
 import time
 import random
@@ -42,6 +43,9 @@ class MLP:
 
     def __init__(self, *args):
         ''' Initialization of the perceptron with given sizes.  '''
+############################
+############################
+############################
 
         self.shape = args
         n = len(args)
@@ -69,6 +73,8 @@ class MLP:
 
     def reset(self):
         ''' Reset weights '''
+############################
+############################
 
         for i in range(len(self.weights)):
             Z = np.random.random((self.layers[i].size,self.layers[i+1].size))
@@ -76,6 +82,9 @@ class MLP:
 
     def propagate_forward(self, data):
         ''' Propagate data from input layer to output layer. '''
+############################
+############################
+############################
 
         # Set input layer
         self.layers[0][0:-1] = data
@@ -88,17 +97,10 @@ class MLP:
         # Return output
         return self.layers[-1]
 
-    def disp_weight_hist(self):
-        plt.hist(self.weights[0].ravel())
-        plt.gca().set_xscale("log")
-        plt.gca().set_yscale("log")
-        plt.show()
-
-    def save_weights(self, name="weight_mat"):
-        np.save(name, self.weights[0])
-        print "weights saved"
-
     def propagate_backward(self, target, lrate=0.01):
+############################
+############################
+############################
         ''' Back propagate error related to target using lrate. '''
         begin_time = time.clock()
 
