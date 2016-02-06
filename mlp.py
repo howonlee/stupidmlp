@@ -34,7 +34,7 @@ def dsigmoid(x):
     ''' Derivative of sigmoid above '''
     return 1.0-x**2
 
-class MLP:
+class FractalMLP:
     '''
     Multi-layer perceptron class.
     This is used via SGD only in the MNIST thing Howon rigged up
@@ -140,8 +140,6 @@ def onehots(n):
     return arr
 
 def create_mnist_samples(filename="mnist.pkl.gz"):
-    # only 500 datapoints, we don't even really need that many
-    # we are not using this net, so can just use training only
     samples = np.zeros(50000, dtype=[('input',  float, 784), ('output', float, 10)])
     with gzip.open(filename, "rb") as f:
         train_set, valid_set, test_set = cPickle.load(f)
@@ -158,6 +156,12 @@ def create_cifar_samples(filename="cifar-10-batches-py/data_batch_1"):
             samples[x] = cifar_dict["data"][x] / 256.0, onehots(cifar_dict["labels"][x])
     return samples, 3072
 
+def create_padded_mnist_samples(filename="mnist.pkl.gz"):
+    pass
+
+def downsample(sample_mat):
+    pass
+
 def test_network(net, samples):
     correct, total = 0, 0
     for x in xrange(samples.shape[0]):
@@ -173,32 +177,6 @@ def test_network(net, samples):
 
 # -----------------------------------------------------------------------------
 if __name__ == '__main__':
-
     print "learning the patterns..."
     samples, dims = create_mnist_samples()
-    network = MLP(dims, 30, 10)
-    network.save_weights("init_mat")
-    curr_delta_filename = "delta_" + str(0)
-    pos_rs = 0
-    total_rs = 0
-    for i in range(30000):
-        if i % 50 == 25:
-            print "pattern: ", i
-            curr_delta_filename = "delta_" + str(i)
-            if i > 20000:
-                test_network(network, samples[40000:40500])
-                curr_vals = np.abs(network.weights[0].copy().ravel())
-                curr_vals /= np.max(curr_vals)
-                curr_vals = random.sample(list(curr_vals), 4000)
-                random.shuffle(curr_vals)
-                pl_fit = powerlaw.Fit(curr_vals)
-                R, _ = pl_fit.distribution_compare('power_law', 'exponential', normalized_ratio=False)
-                print R
-                total_rs += 1
-                if R > 0:
-                    pos_rs += 1
-                print "rs: ", pos_rs, " / ", total_rs
-        n = np.random.randint(samples.size)
-        network.propagate_forward(samples['input'][n])
-        network.propagate_backward(samples['output'][n], curr_delta_filename)
-    network.save_weights("weight_mat")
+    network = FractalMLP(2,2,10)
