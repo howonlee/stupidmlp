@@ -155,9 +155,6 @@ def create_cifar_samples(filename="cifar-10-batches-py/data_batch_1"):
             samples[x] = cifar_dict["data"][x] / 256.0, onehots(cifar_dict["labels"][x])
     return samples, 3072
 
-def create_padded_mnist_samples(filename="mnist.pkl.gz"):
-    pass
-
 def test_network(net, samples):
     correct, total = 0, 0
     for x in xrange(samples.shape[0]):
@@ -171,13 +168,11 @@ def test_network(net, samples):
     # lots of less naive things out there
     return float(correct) / float(total)
 
-# -----------------------------------------------------------------------------
-if __name__ == '__main__':
-    print "learning the patterns..."
+def profile_hidden_range():
     samples, dims = create_mnist_samples()
     sample_mats = []
     # downsample the sample mats
-    networks = [MLP(dims, hids, 10) for hids in [16, 32, 64, 128, 256]]
+    networks = [MLP(dims, hids, 10) for hids in range(16, 128)]
     times = []
     for idx, curr_network in enumerate(networks):
         for i in range(2000):
@@ -189,3 +184,10 @@ if __name__ == '__main__':
         times.append(np.log(curr_time))
     plt.plot(times)
     plt.show()
+
+def profile_expando_range():
+    pass
+
+# -----------------------------------------------------------------------------
+if __name__ == '__main__':
+    profile_expando_range()
