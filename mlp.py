@@ -51,7 +51,7 @@ class MLP:
         # Build layers
         self.layers = []
         # Input layer (+1 unit for bias)
-        self.layers.append(sci_sp.csc_matrix(np.ones(self.shape[0]+1)))
+        self.layers.append(np.ones(self.shape[0]+1))
         # Hidden layer(s) + output layer
         for i in range(1,n):
             self.layers.append(sci_sp.csc_matrix(np.ones(self.shape[i])))
@@ -84,7 +84,8 @@ class MLP:
         # Propagate from layer 0 to layer n-1 using sigmoid as activation function
         for i in range(1,len(self.shape)):
             # Propagate activity
-            self.layers[i][...] = sigmoid(np.dot(self.layers[i-1],self.weights[i-1]))
+            # csc matrix at last moment
+            self.layers[i][...] = sigmoid(sci_sp.csc_matrix(self.layers[i-1]).dot(self.weights[i-1]))
 
         # Return output
         return self.layers[-1]
@@ -190,5 +191,7 @@ if __name__ == '__main__':
     samples, dims = create_mnist_samples()
     network = MLP(dims, 16, 10)
     for i in xrange(20000):
+        if i % 50 == 0:
+            print "sample: ", i
         n = np.random.randint(samples.size)
         network.propagate_forward(samples['input'][n])
