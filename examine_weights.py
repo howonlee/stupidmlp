@@ -7,5 +7,6 @@ if __name__ == "__main__":
     plt.gca().set_xscale("log")
     plt.gca().set_yscale("log")
     plt.show()
-    print weights[np.abs(weights) < 0.1].sum()
-    print weights[np.abs(weights) < 0.00000000001].sum()
+    # killed, basically
+    print np.ones_like(weights).sum()
+    print (np.abs(weights) < 0.0000000000001).sum()

@@ -126,7 +126,7 @@ class MLP:
         for i in range(len(self.weights)):
             layer = np.atleast_2d(self.layers[i])
             delta = np.atleast_2d(deltas[i])
-            dw = np.dot(layer.T,delta) - (l1 * dabs(np.dot(layer.T, delta)))
+            dw = np.dot(layer.T,delta)
             self.weights[i] += lrate*dw
             self.dw[i] = dw
 
@@ -134,6 +134,10 @@ class MLP:
         end_time = time.clock()
         self.bp_times.append(end_time - begin_time)
         return (error**2).sum()
+
+    def sparsify(self, thresh=0.01):
+        for i in range(len(self.weights)):
+            self.weights[i][np.abs(self.weights[i]) < thresh] = 0
 
 def onehots(n):
     arr = np.array([-1.0] * 10)
@@ -178,6 +182,8 @@ def test_conventional_net():
         n = np.random.randint(samples.size)
         network.propagate_forward(samples['input'][n])
         network.propagate_backward(samples['output'][n])
+    print test_network(network, samples[40000:40500])
+    network.sparsify()
     print test_network(network, samples[40000:40500])
     network.save_weights()
 
