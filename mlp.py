@@ -34,6 +34,12 @@ def dsigmoid(x):
     ''' Derivative of sigmoid above '''
     return 1.0-x**2
 
+def ourdok_ones(size):
+    ourdok = {}
+    for x in xrange(size):
+        ourdok[x] = 1.0
+    return ourdok
+
 class MLP:
     '''
     Multi-layer perceptron class.
@@ -50,10 +56,10 @@ class MLP:
         # Build layers
         self.layers = []
         # Input layer (+1 unit for bias)
-        self.layers.append(np.ones(self.shape[0]+1))
+        self.layers.append(ourdok_ones(self.shape[0]+1))
         # Hidden layer(s) + output layer
         for i in range(1,n):
-            self.layers.append(np.ones(self.shape[i]))
+            self.layers.append(ourdok_ones(self.shape[i]))
 
         # Build weights matrix (randomly)
         self.weights = []
@@ -61,8 +67,6 @@ class MLP:
             self.weights.append(np.zeros((self.layers[i].size,
                                          self.layers[i+1].size)))
 
-        # dw will hold last change in weights (for momentum)
-        self.dw = [0,]*len(self.weights)
 
         # Reset weights
         self.reset()
@@ -121,7 +125,6 @@ class MLP:
             delta = np.atleast_2d(deltas[i])
             dw = np.dot(layer.T,delta)
             self.weights[i] += lrate*dw
-            self.dw[i] = dw
 
         # Return error
         end_time = time.clock()
