@@ -37,6 +37,18 @@ def dsigmoid(x):
     ''' Derivative of sigmoid above '''
     return 1.0-x**2
 
+def mat_dsigmoid(mat):
+    new_mat = sci_sp.csc_matrix(mat)
+    for x in xrange(mat.shape[1]):
+        new_mat[0, x] = 1.0 - (mat[0, x] ** 2)
+    return new_mat
+
+def elem_mult(mat1, mat2):
+    new_mat = sci_sp.csc_matrix(mat1)
+    for x in xrange(mat1.shape[1]):
+        new_mat[0, x] += mat1[0, x] * mat2[0, x]
+    return new_mat
+
 class MLP:
     '''
     Multi-layer perceptron class.
@@ -53,33 +65,35 @@ class MLP:
         # Build layers
         self.layers = []
         # Input layer (+1 unit for bias)
-        self.layers.append(np.ones(self.shape[0]+1))
+        self.layers.append(sci_sp.csc_matrix(np.ones(self.shape[0]+1)))
         # Hidden layer(s) + output layer
         for i in range(1,n):
-            self.layers.append(np.ones(self.shape[i]))
+            self.layers.append(sci_sp.csc_matrix(np.ones(self.shape[i])))
 
         # Build weights matrix (randomly)
         self.weights = []
         for i in range(n-1):
             new_weights = (2 * (npr.random((self.layers[i].size, self.layers[i+1].size))) - 1) * 0.00001
-            self.weights.append(sci_sp.coo_matrix(new_weights))
+            self.weights.append(sci_sp.csc_matrix(new_weights))
+            # self.weights.append(new_weights)
 
     def propagate_forward(self, data):
         ''' Propagate data from input layer to output layer. '''
         ''' Data is still in numpy format, hear? '''
 
         # Set input layer
-        self.layers[0][0:-1] = data
+        for x in xrange(data.size):
+            self.layers[0][0, x] = data[x]
 
         # Propagate from layer 0 to layer n-1 using sigmoid as activation function
         for i in range(1,len(self.shape)):
             # Propagate activity
-            self.layers[i][...] = sigmoid(np.dot(self.layers[i-1],self.weights[i-1]))
+            self.layers[i][...] = sigmoid(self.layers[i-1].dot(self.weights[i-1]))
 
         # Return output
         return self.layers[-1]
 
-    def propagate_backward(self, target, lrate=0.01, l1=0.001):
+    def propagate_backward(self, target, lrate=0.01):
         ''' Back propagate error related to target using lrate. '''
         begin_time = time.clock()
 
@@ -87,26 +101,25 @@ class MLP:
 
         # Compute error on output layer
         error = target - self.layers[-1]
-        delta = error*dsigmoid(self.layers[-1])
+        delta = elem_mult(error, mat_dsigmoid(self.layers[-1]))
         deltas.append(delta)
 
         # Compute error on hidden layers
         for i in range(len(self.shape)-2,0,-1):
-            error = np.dot(deltas[0], self.weights[i].T)
-            delta = error*dsigmoid(self.layers[i])
+            error = deltas[0].dot(self.weights[i].T)
+            delta = elem_mult(error, mat_dsigmoid(self.layers[i]))
             deltas.insert(0,delta)
 
         # Update weights
         for i in range(len(self.weights)):
-            layer = np.atleast_2d(self.layers[i])
-            delta = np.atleast_2d(deltas[i])
-            dw = np.dot(layer.T,delta)
+            dw = self.layers[i].T.dot(deltas[i])
+            # dw = np.dot(layer.T,delta)
             self.weights[i] += lrate*dw
 
         # Return error
         end_time = time.clock()
         self.bp_times.append(end_time - begin_time)
-        return (error**2).sum()
+        return error.sum()
 
     def sparsify(self, thresh=0.01):
         for i in range(len(self.weights)):
@@ -157,8 +170,6 @@ def test_conventional_net():
         network.propagate_backward(samples['output'][n])
     print test_network(network, samples[40000:40500])
     network.sparsify()
-    print test_network(network, samples[40000:40500])
-    network.save_weights()
 
 def profile_hidden_range():
     samples, dims = create_mnist_samples()
@@ -188,10 +199,12 @@ def profile_expando_range():
 if __name__ == '__main__':
     samples, dims = create_mnist_samples()
     network = MLP(dims, 100, 10)
-    for i in xrange(25000):
-        print "sample: ", i
+    num_iters = 30000
+    for i in xrange(num_iters):
+        if i % 10 == 0:
+            print "sample: ", i, " / ", num_iters
         n = np.random.randint(samples.size)
         network.propagate_forward(samples['input'][n])
-    #     network.propagate_backward(samples['output'][n])
-    # print test_network(network, samples[40000:40500])
+        network.propagate_backward(samples['output'][n])
+    print test_network(network, samples[40000:40500])
     # network.sparsify()
