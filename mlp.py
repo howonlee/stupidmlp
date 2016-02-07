@@ -34,13 +34,6 @@ def dsigmoid(x):
     ''' Derivative of sigmoid above '''
     return 1.0-x**2
 
-def dabs(x):
-    x_copy = x.copy()
-    x_copy[x > 0] = 1
-    x_copy[x < 0] = -1
-    # not touching 0...
-    return x_copy
-
 class MLP:
     '''
     Multi-layer perceptron class.
