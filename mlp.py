@@ -43,9 +43,6 @@ class MLP:
 
     def __init__(self, *args):
         ''' Initialization of the perceptron with given sizes.  '''
-############################
-############################
-############################
 
         self.shape = args
         n = len(args)
@@ -54,10 +51,10 @@ class MLP:
         # Build layers
         self.layers = []
         # Input layer (+1 unit for bias)
-        self.layers.append(np.ones(self.shape[0]+1))
+        self.layers.append(sci_sp.csc_matrix(np.ones(self.shape[0]+1)))
         # Hidden layer(s) + output layer
         for i in range(1,n):
-            self.layers.append(np.ones(self.shape[i]))
+            self.layers.append(sci_sp.csc_matrix(np.ones(self.shape[i])))
 
         # Build weights matrix (randomly)
         self.weights = []
@@ -72,19 +69,14 @@ class MLP:
         self.reset()
 
     def reset(self):
-        ''' Reset weights '''
-############################
-############################
+        ''' Reset weights and render into sparse mat form '''
 
         for i in range(len(self.weights)):
             Z = np.random.random((self.layers[i].size,self.layers[i+1].size))
-            self.weights[i][...] = (2*Z-1)*0.00001
+            self.weights[i] = sci_sp.csc_matrix((2*Z-1)*0.00001)
 
     def propagate_forward(self, data):
         ''' Propagate data from input layer to output layer. '''
-############################
-############################
-############################
 
         # Set input layer
         self.layers[0][0:-1] = data
@@ -98,9 +90,6 @@ class MLP:
         return self.layers[-1]
 
     def propagate_backward(self, target, lrate=0.01):
-############################
-############################
-############################
         ''' Back propagate error related to target using lrate. '''
         begin_time = time.clock()
 
@@ -124,9 +113,9 @@ class MLP:
             self.weights[i] += lrate*dw
             self.dw[i] = dw
 
-        # Return error
         end_time = time.clock()
         self.bp_times.append(end_time - begin_time)
+        # Return error
         return (error**2).sum()
 
 def onehots(n):
@@ -198,4 +187,8 @@ def profile_expando_range():
     plt.show()
 # -----------------------------------------------------------------------------
 if __name__ == '__main__':
-    test_conventional_net()
+    samples, dims = create_mnist_samples()
+    network = MLP(dims, 16, 10)
+    for i in xrange(20000):
+        n = np.random.randint(samples.size)
+        network.propagate_forward(samples['input'][n])
