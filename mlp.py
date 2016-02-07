@@ -21,7 +21,6 @@
 import numpy as np
 import numpy.random as npr
 import matplotlib.pyplot as plt
-import scipy.sparse as sci_sp
 import cPickle
 import time
 import random
@@ -54,7 +53,7 @@ class MLP:
         self.layers.append(np.ones(self.shape[0]+1))
         # Hidden layer(s) + output layer
         for i in range(1,n):
-            self.layers.append(sci_sp.csc_matrix(np.ones(self.shape[i])))
+            self.layers.append(np.ones(self.shape[i]))
 
         # Build weights matrix (randomly)
         self.weights = []
@@ -69,11 +68,11 @@ class MLP:
         self.reset()
 
     def reset(self):
-        ''' Reset weights and render into sparse mat form '''
+        ''' Reset weights '''
 
         for i in range(len(self.weights)):
             Z = np.random.random((self.layers[i].size,self.layers[i+1].size))
-            self.weights[i] = sci_sp.csc_matrix((2*Z-1)*0.00001)
+            self.weights[i][...] = (2*Z-1)*0.00001
 
     def propagate_forward(self, data):
         ''' Propagate data from input layer to output layer. '''
@@ -84,11 +83,20 @@ class MLP:
         # Propagate from layer 0 to layer n-1 using sigmoid as activation function
         for i in range(1,len(self.shape)):
             # Propagate activity
-            # csc matrix at last moment
-            self.layers[i][...] = sigmoid(sci_sp.csc_matrix(self.layers[i-1]).dot(self.weights[i-1]))
+            self.layers[i][...] = sigmoid(np.dot(self.layers[i-1],self.weights[i-1]))
 
         # Return output
         return self.layers[-1]
+
+    def disp_weight_hist(self):
+        plt.hist(self.weights[0].ravel())
+        plt.gca().set_xscale("log")
+        plt.gca().set_yscale("log")
+        plt.show()
+
+    def save_weights(self, name="weight_mat"):
+        np.save(name, self.weights[0])
+        print "weights saved"
 
     def propagate_backward(self, target, lrate=0.01):
         ''' Back propagate error related to target using lrate. '''
@@ -114,9 +122,9 @@ class MLP:
             self.weights[i] += lrate*dw
             self.dw[i] = dw
 
+        # Return error
         end_time = time.clock()
         self.bp_times.append(end_time - begin_time)
-        # Return error
         return (error**2).sum()
 
 def onehots(n):
@@ -188,10 +196,4 @@ def profile_expando_range():
     plt.show()
 # -----------------------------------------------------------------------------
 if __name__ == '__main__':
-    samples, dims = create_mnist_samples()
-    network = MLP(dims, 16, 10)
-    for i in xrange(20000):
-        if i % 50 == 0:
-            print "sample: ", i
-        n = np.random.randint(samples.size)
-        network.propagate_forward(samples['input'][n])
+    test_conventional_net()
