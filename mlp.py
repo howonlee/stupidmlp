@@ -60,9 +60,7 @@ def ourdok_vecmatdot(vec, mat):
     new_vec = collections.defaultdict(float)
     for vec_key, vec_val in vec.iteritems():
         for mat_rowkey, mat_row in mat.iteritems():
-            for mat_colkey, mat_val in mat_row.iteritems():
-                if vec_key == mat_colkey:
-                    new_vec[vec_key] += vec[mat_rowkey] * mat_val
+            new_vec[vec_key] += vec[mat_rowkey] * mat_row[vec_key]
     return new_vec
 
 class MLP:
