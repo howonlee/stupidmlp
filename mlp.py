@@ -22,6 +22,7 @@ import numpy as np
 import numpy.random as npr
 import matplotlib.pyplot as plt
 import cPickle
+import collections
 import time
 import random
 import gzip
@@ -35,10 +36,16 @@ def dsigmoid(x):
     return 1.0-x**2
 
 def ourdok_ones(size):
-    ourdok = {}
+    ourdok = collections.defaultdict(float)
     for x in xrange(size):
         ourdok[x] = 1.0
     return ourdok
+
+def ourdok_random(fst_axis, snd_axis):
+    ourdok = collections.defaultdict(float)
+    for x in xrange(fst_axis):
+        for y in xrange(snd_axis):
+            ourdok[x,y] = (2 * random.random() - 1) * 0.00001
 
 class MLP:
     '''
@@ -64,19 +71,8 @@ class MLP:
         # Build weights matrix (randomly)
         self.weights = []
         for i in range(n-1):
-            self.weights.append(np.zeros((self.layers[i].size,
-                                         self.layers[i+1].size)))
-
-
-        # Reset weights
-        self.reset()
-
-    def reset(self):
-        ''' Reset weights '''
-
-        for i in range(len(self.weights)):
-            Z = np.random.random((self.layers[i].size,self.layers[i+1].size))
-            self.weights[i][...] = (2*Z-1)*0.00001
+            self.weights.append(ourdok_random(self.layers[i].size,
+                                              self.layer[i+1].size))
 
     def propagate_forward(self, data):
         ''' Propagate data from input layer to output layer. '''
