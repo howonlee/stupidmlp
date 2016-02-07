@@ -98,7 +98,7 @@ class MLP:
         np.save(name, self.weights[0])
         print "weights saved"
 
-    def propagate_backward(self, target, lrate=0.01):
+    def propagate_backward(self, target, lrate=0.01, l1=0.001):
         ''' Back propagate error related to target using lrate. '''
         begin_time = time.clock()
 
@@ -119,7 +119,8 @@ class MLP:
             layer = np.atleast_2d(self.layers[i])
             delta = np.atleast_2d(deltas[i])
             dw = np.dot(layer.T,delta)
-            self.weights[i] += lrate*dw
+            self.weights[i] += lrate*dw - (l1 * self.weights[i])
+            # OK, I lied, it's L2
             self.dw[i] = dw
 
         # Return error
@@ -164,11 +165,12 @@ def test_network(net, samples):
 def test_conventional_net():
     samples, dims = create_mnist_samples()
     network = MLP(dims, 100, 10)
-    for i in xrange(20000):
+    for i in xrange(35000):
         n = np.random.randint(samples.size)
         network.propagate_forward(samples['input'][n])
         network.propagate_backward(samples['output'][n])
     print test_network(network, samples[40000:40500])
+    network.save_weights()
 
 def profile_hidden_range():
     samples, dims = create_mnist_samples()
