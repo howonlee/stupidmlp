@@ -34,6 +34,13 @@ def dsigmoid(x):
     ''' Derivative of sigmoid above '''
     return 1.0-x**2
 
+def dabs(x):
+    x_copy = x.copy()
+    x_copy[x > 0] = 1
+    x_copy[x < 0] = -1
+    # not touching 0...
+    return x_copy
+
 class MLP:
     '''
     Multi-layer perceptron class.
@@ -111,16 +118,16 @@ class MLP:
 
         # Compute error on hidden layers
         for i in range(len(self.shape)-2,0,-1):
-            delta = np.dot(deltas[0],self.weights[i].T)*dsigmoid(self.layers[i])
+            error = np.dot(deltas[0], self.weights[i].T)
+            delta = error*dsigmoid(self.layers[i])
             deltas.insert(0,delta)
 
         # Update weights
         for i in range(len(self.weights)):
             layer = np.atleast_2d(self.layers[i])
             delta = np.atleast_2d(deltas[i])
-            dw = np.dot(layer.T,delta)
-            self.weights[i] += lrate*dw - (l1 * self.weights[i])
-            # OK, I lied, it's L2
+            dw = np.dot(layer.T,delta) - (l1 * dabs(np.dot(layer.T, delta)))
+            self.weights[i] += lrate*dw
             self.dw[i] = dw
 
         # Return error
@@ -165,7 +172,9 @@ def test_network(net, samples):
 def test_conventional_net():
     samples, dims = create_mnist_samples()
     network = MLP(dims, 100, 10)
-    for i in xrange(35000):
+    for i in xrange(25000):
+        if i % 100 == 0:
+            print "sample: ", i
         n = np.random.randint(samples.size)
         network.propagate_forward(samples['input'][n])
         network.propagate_backward(samples['output'][n])
