@@ -20,10 +20,12 @@
 # -----------------------------------------------------------------------------
 import numpy as np
 import numpy.random as npr
+import scipy.sparse as sci_sp
 import matplotlib.pyplot as plt
 import cPickle
 import collections
 import time
+import sys
 import random
 import gzip
 
@@ -34,34 +36,6 @@ def sigmoid(x):
 def dsigmoid(x):
     ''' Derivative of sigmoid above '''
     return 1.0-x**2
-
-### don't even ask why we're implementing our own dok
-### yah, I know about scipy dok
-### it sucks real bad and this is faster for the purposes I want, OK?
-
-def ourdok_ones(size):
-    ourdok = collections.defaultdict(float)
-    for x in xrange(size):
-        ourdok[x] = 1.0
-    return ourdok
-
-def ourdok_random(fst_axis, snd_axis):
-    ourdok = collections.defaultdict(dict)
-    for x in xrange(fst_axis):
-        for y in xrange(snd_axis):
-            ourdok[x][y] = (2 * random.random() - 1) * 0.00001
-
-# self.layers[i] = ourdok_sigmoid(ourdok_vecmatdot(self.layers[i-1],self.weights[i-1]))
-
-def ourdok_sigmoid(dok):
-    return {k: sigmoid(v) for k,v in dok.iteritems()}
-
-def ourdok_vecmatdot(vec, mat):
-    new_vec = collections.defaultdict(float)
-    for vec_key, vec_val in vec.iteritems():
-        for mat_rowkey, mat_row in mat.iteritems():
-            new_vec[vec_key] += vec[mat_rowkey] * mat_row[vec_key]
-    return new_vec
 
 class MLP:
     '''
@@ -79,30 +53,28 @@ class MLP:
         # Build layers
         self.layers = []
         # Input layer (+1 unit for bias)
-        self.layers.append(ourdok_ones(self.shape[0]+1))
+        self.layers.append(np.ones(self.shape[0]+1))
         # Hidden layer(s) + output layer
         for i in range(1,n):
-            self.layers.append(ourdok_ones(self.shape[i]))
+            self.layers.append(np.ones(self.shape[i]))
 
         # Build weights matrix (randomly)
         self.weights = []
         for i in range(n-1):
-            self.weights.append(ourdok_random(len(self.layers[i]),
-                                              len(self.layers[i+1])))
+            new_weights = (2 * (npr.random((self.layers[i].size, self.layers[i+1].size))) - 1) * 0.00001
+            self.weights.append(sci_sp.coo_matrix(new_weights))
 
     def propagate_forward(self, data):
         ''' Propagate data from input layer to output layer. '''
         ''' Data is still in numpy format, hear? '''
 
         # Set input layer
-        for x in xrange(data.size):
-            self.layers[0][x] = data[x]
+        self.layers[0][0:-1] = data
 
         # Propagate from layer 0 to layer n-1 using sigmoid as activation function
         for i in range(1,len(self.shape)):
             # Propagate activity
-            # self.layers[i][...] = sigmoid(np.dot(self.layers[i-1],self.weights[i-1]))
-            self.layers[i] = ourdok_sigmoid(ourdok_vecmatdot(self.layers[i-1],self.weights[i-1]))
+            self.layers[i][...] = sigmoid(np.dot(self.layers[i-1],self.weights[i-1]))
 
         # Return output
         return self.layers[-1]
@@ -214,23 +186,12 @@ def profile_expando_range():
     plt.show()
 # -----------------------------------------------------------------------------
 if __name__ == '__main__':
-    vec = {0: 1, 1: 2, 2: 3}
-    mat = {0: {0: 1, 1: 2, 2: 3},
-            1: {0: 4, 1: 5, 2: 6},
-            2: {0: 7, 1: 8, 2: 9}}
-    print ourdok_vecmatdot(vec, mat)
-    npvec = np.array([1,2,3])
-    npmat = np.array([[1,2,3],[4,5,6],[7,8,9]])
-    print npvec
-    print npmat
-    print np.dot(npvec, npmat)
-    # samples, dims = create_mnist_samples()
-    # network = MLP(dims, 100, 10)
-    # for i in xrange(25000):
-    #     if i % 100 == 0:
-    #         print "sample: ", i
-    #     n = np.random.randint(samples.size)
-    #     network.propagate_forward(samples['input'][n])
+    samples, dims = create_mnist_samples()
+    network = MLP(dims, 100, 10)
+    for i in xrange(25000):
+        print "sample: ", i
+        n = np.random.randint(samples.size)
+        network.propagate_forward(samples['input'][n])
     #     network.propagate_backward(samples['output'][n])
     # print test_network(network, samples[40000:40500])
     # network.sparsify()
