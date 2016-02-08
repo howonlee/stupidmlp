@@ -73,9 +73,9 @@ def sparse_vs_dense():
 def compare_sparses():
     threshes = map(lambda x: float(x) / 10, range(10))
     for thresh in threshes:
-        for x in xrange(100):
+        for x in xrange(5):
             vec = sci_sp.csr_matrix(np.matrix(sparsify_vec(npr.random(100), thresh=thresh)))
-            mat = sci_sp.csr_matrix(np.matrix(sparsify_mat(npr.random((100, 100)), thresh=thresh)))
+            mat = sci_sp.csr_matrix(np.matrix(npr.random((100, 100))))
             begin_time = time.clock()
             res = sparse_col_vec_dot(mat, vec.T)
             end_time = time.clock()
