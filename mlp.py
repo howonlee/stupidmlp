@@ -37,13 +37,13 @@ def dsigmoid(x):
     ''' Derivative of sigmoid above '''
     return 1.0-x**2
 
-#### must vectorize!!!
-
 def mat_dsigmoid(mat):
-    new_mat = sci_sp.csc_matrix(mat)
-    for x in xrange(mat.shape[1]):
-        new_mat[0, x] = 1.0 - (mat[0, x] ** 2)
-    return new_mat
+    densified = mat.toarray()
+    return sci_sp.csc_matrix(1.0 - densified ** 2)
+    # new_mat = sci_sp.csc_matrix(mat)
+    # for x in xrange(mat.shape[1]):
+    #     new_mat[0, x] = 1.0 - (mat[0, x] ** 2)
+    # return new_mat
 
 class MLP:
     '''
@@ -116,7 +116,7 @@ class MLP:
         self.bp_times.append(end_time - begin_time)
         return error.sum()
 
-    def sparsify(self, thresh=0.01):
+    def sparsify(self):
         for i in range(len(self.weights)):
             self.weights[i][np.abs(self.weights[i]) < thresh] = 0
 
@@ -148,7 +148,8 @@ def test_network(net, samples):
         total += 1
         in_pat = samples["input"][x]
         out_pat = samples["output"][x]
-        out = net.propagate_forward(in_pat)
+        # needs to be adjusted for neural net's sparsity datastruct
+        out = net.propagate_forward(in_pat).toarray().ravel()
         if np.argmax(out) == np.argmax(out_pat):
             correct += 1
     # lots of less naive things out there
@@ -194,13 +195,10 @@ def profile_expando_range():
 if __name__ == '__main__':
     samples, dims = create_mnist_samples()
     network = MLP(dims, 30, 10)
-    num_iters = 300
+    num_iters = 5000
     for i in xrange(num_iters):
         if i % 100 == 0:
             print "sample: ", i, " / ", num_iters, " time: ", time.clock()
-            # plt.imshow(network.weights[0].todense())
-            # plt.colorbar()
-            # plt.show()
         n = np.random.randint(samples.size)
         network.propagate_forward(samples['input'][n])
         network.propagate_backward(samples['output'][n])
