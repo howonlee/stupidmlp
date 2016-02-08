@@ -48,8 +48,8 @@ def sparsify_vec(vec, thresh=0.99):
             new_arr[x] = 0
     return new_arr
 
-
-if __name__ == "__main__":
+def sparse_vs_dense():
+    # C++ versus ATLAS, C++ loses
     for arr_size in [50, 100, 200, 400, 800, 1600]:
         # rand_vec = np.matrix(sparsify_vec(npr.random(arr_size)))
         rand_vec = np.matrix(npr.random(arr_size))
@@ -69,3 +69,18 @@ if __name__ == "__main__":
             sparse_end_time = time.clock()
             curr_sparses.append(sparse_end_time - sparse_begin_time)
         print np.median(np.array(curr_sparses)), np.median(np.array(curr_denses))
+
+def compare_sparses():
+    threshes = map(lambda x: float(x) / 10, range(10))
+    for thresh in threshes:
+        for x in xrange(100):
+            vec = sci_sp.csr_matrix(np.matrix(sparsify_vec(npr.random(100), thresh=thresh)))
+            mat = sci_sp.csr_matrix(np.matrix(sparsify_mat(npr.random((100, 100)), thresh=thresh)))
+            begin_time = time.clock()
+            res = sparse_col_vec_dot(mat, vec.T)
+            end_time = time.clock()
+            print "thresh: ", thresh, " , time: ", end_time - begin_time
+
+
+if __name__ == "__main__":
+    compare_sparses()

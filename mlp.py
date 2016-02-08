@@ -40,10 +40,6 @@ def dsigmoid(x):
 def mat_dsigmoid(mat):
     densified = mat.toarray()
     return sci_sp.csc_matrix(1.0 - densified ** 2)
-    # new_mat = sci_sp.csc_matrix(mat)
-    # for x in xrange(mat.shape[1]):
-    #     new_mat[0, x] = 1.0 - (mat[0, x] ** 2)
-    # return new_mat
 
 class MLP:
     '''
@@ -117,9 +113,10 @@ class MLP:
         return error.sum()
 
     def expando(self):
-        # add to hidden layer
-        # add to adjacent weights
-        pass
+        for i in range(1, len(self.layers)-1):
+            self.layers[i] = something new ###########
+        for i in range(0, len(self.weights)):
+            self.weights[i] = something new ##########3
 
     def check_sparsity(self):
         for i in range(len(self.weights)):
@@ -208,6 +205,7 @@ def profile_expando_range():
 if __name__ == '__main__':
     samples, dims = create_mnist_samples()
     network = MLP(dims, 32, 10)
+    network.expando()
     num_iters = 35000
     for i in xrange(num_iters):
         if i % 100 == 0:
@@ -216,7 +214,7 @@ if __name__ == '__main__':
             network.check_sparsity()
             print "==============="
         if i % 5000 == 0:
-            network.sparsify()
+            network.sparsify() # oh ho ho ho ho
         n = np.random.randint(samples.size)
         network.propagate_forward(samples['input'][n])
         network.propagate_backward(samples['output'][n])
