@@ -82,18 +82,16 @@ class MLP:
         #     self.layers[0][0, x] = data[x]
 
         # Propagate from layer 0 to layer n-1 using sigmoid as activation function
-        begin_time = time.clock()
         for i in range(1,len(self.shape)):
             # Propagate activity
             self.layers[i][...] = sigmoid(self.layers[i-1].dot(self.weights[i-1]))
-        end_time = time.clock()
-        self.bp_times.append(end_time - begin_time)
 
         # Return output
         return self.layers[-1]
 
     def propagate_backward(self, target, lrate=0.01):
         ''' Back propagate error related to target using lrate. '''
+        begin_time = time.clock()
 
         deltas = []
 
@@ -111,13 +109,15 @@ class MLP:
 
         # Update weights: this is the bit that scales
         for i in range(len(self.weights)):
-            dw = self.layers[i].T.dot(deltas[i])
+            dw = self.layers[i].T.dot(deltas[i]) ### replace this one
             self.weights[i] += lrate*dw
             if i < len(self.weights)-1 and self.has_sparsified:
                 self.weights[i][self.sparsifiers[i]] = 0
                 self.weights[i].eliminate_zeros()
 
         # Return error
+        end_time = time.clock()
+        self.bp_times.append(end_time - begin_time)
         return error.sum()
 
     def expando(self):
@@ -228,8 +228,8 @@ def profile_expando_range():
         network.propagate_backward(samples['output'][n])
     plt.hist(np.abs(network.weights[0].ravel()))
     plt.show()
-# -----------------------------------------------------------------------------
-if __name__ == '__main__':
+
+def test_expando():
     samples, dims = create_mnist_samples()
     network = MLP(dims, 32, 10)
     num_epochs = 5
@@ -253,3 +253,12 @@ if __name__ == '__main__':
         # network.sparsify()
         network.check_sparsity()
     print test_network(network, samples[40000:40500])
+
+def sparse_outer(fst, snd, to_calc):
+    new = sci_sp.dok_matrix((fst.size, snd.size))
+    for fst_idx, snd_idx in to_calc.keys():
+        new[fst_idx, snd_idx] = fst[fst_idx] * snd[snd_idx]
+    return new.tocsr()
+
+if __name__ == '__main__':
+    test_sparseouter()
