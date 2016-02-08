@@ -38,8 +38,9 @@ def dsigmoid(x):
     return 1.0-x**2
 
 def mat_dsigmoid(mat):
-    densified = mat.toarray()
-    return sci_sp.csc_matrix(1.0 - densified ** 2)
+    new_mat = mat.copy()
+    new_mat.data = 1.0 - (new_mat.data ** 2)
+    return new_mat
 
 class MLP:
     '''
@@ -143,16 +144,16 @@ class MLP:
 
     def sparsify(self):
         self.has_sparsified = True
-        # keep a record of everything that's been sparsified
         for i in range(len(self.weights)-1): # not the softmax layer
-            # so the median of existing weights above 0
-            thresh = np.median(
+            # so the 50th percentile of existing weights above 0
+            # leave it as np.percentile, not median, cuz experimentation
+            thresh = np.percentile(
                                np.abs(
                                    self.weights[i].toarray()[np.abs(self.weights[i].toarray()) > 0]
-                                )
+                                ), 50
                               )
             # add to sparsifier
-            # kill based upon sparsifier, but in another place
+            # kill based upon sparsifier, but in the actual backprop
             self.sparsifiers[i] = np.logical_or(np.abs(self.weights[i].toarray()) < thresh, self.sparsifiers[i])
 
 def onehots(n):
@@ -231,7 +232,7 @@ if __name__ == '__main__':
     samples, dims = create_mnist_samples()
     network = MLP(dims, 32, 10)
     num_epochs = 1
-    num_iters = 20000
+    num_iters = 30000
     for x in xrange(num_epochs):
         for i in xrange(num_iters):
             if i % 100 == 0:
@@ -242,7 +243,7 @@ if __name__ == '__main__':
             n = np.random.randint(samples.size)
             network.propagate_forward(samples['input'][n])
             network.propagate_backward(samples['output'][n])
-        # network.expando()
-        # network.sparsify()
+        network.expando()
+        network.sparsify()
         network.check_sparsity()
     print test_network(network, samples[40000:40500])
