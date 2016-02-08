@@ -82,9 +82,12 @@ class MLP:
         #     self.layers[0][0, x] = data[x]
 
         # Propagate from layer 0 to layer n-1 using sigmoid as activation function
+        begin_time = time.clock()
         for i in range(1,len(self.shape)):
             # Propagate activity
             self.layers[i][...] = sigmoid(self.layers[i-1].dot(self.weights[i-1]))
+        end_time = time.clock()
+        self.bp_times.append(end_time - begin_time)
 
         # Return output
         return self.layers[-1]
@@ -111,11 +114,8 @@ class MLP:
             dw = self.layers[i].T.dot(deltas[i])
             self.weights[i] += lrate*dw
             if i < len(self.weights)-1 and self.has_sparsified:
-                begin_time = time.clock()
                 self.weights[i][self.sparsifiers[i]] = 0
                 self.weights[i].eliminate_zeros()
-                end_time = time.clock()
-                self.bp_times.append(end_time - begin_time)
 
         # Return error
         return error.sum()
@@ -231,7 +231,7 @@ def profile_expando_range():
 # -----------------------------------------------------------------------------
 if __name__ == '__main__':
     samples, dims = create_mnist_samples()
-    network = MLP(dims, 4, 10)
+    network = MLP(dims, 32, 10)
     num_epochs = 5
     num_iters = 1000
     prev_time = time.clock()
@@ -250,6 +250,6 @@ if __name__ == '__main__':
             network.propagate_forward(samples['input'][n])
             network.propagate_backward(samples['output'][n])
         network.expando()
-        network.sparsify()
+        # network.sparsify()
         network.check_sparsity()
     print test_network(network, samples[40000:40500])
