@@ -230,14 +230,17 @@ def profile_expando_range():
 # -----------------------------------------------------------------------------
 if __name__ == '__main__':
     samples, dims = create_mnist_samples()
-    network = MLP(dims, 32, 10)
+    network = MLP(dims, 8, 10)
     num_epochs = 1
     num_iters = 30000
-    for x in xrange(num_epochs):
+    prev_time = time.clock()
+    for epoch in xrange(num_epochs):
         for i in xrange(num_iters):
             if i % 100 == 0:
                 print "==============="
                 print "sample: ", i, " / ", num_iters, " time: ", time.clock()
+                print "epoch: ", epoch, " time taken: ", time.clock() - prev_time
+                prev_time = time.clock()
                 network.check_sparsity()
                 print "==============="
             n = np.random.randint(samples.size)
