@@ -91,12 +91,12 @@ class MLP:
 
     def propagate_backward(self, target, lrate=0.01):
         ''' Back propagate error related to target using lrate. '''
-        begin_time = time.clock()
 
         deltas = []
 
         # Compute error on output layer
         error = sci_sp.csc_matrix(target - self.layers[-1])
+        # .multiply is... surprisingly involved
         delta = error.multiply(mat_dsigmoid(self.layers[-1]))
         deltas.append(delta)
 
@@ -106,17 +106,18 @@ class MLP:
             delta = error.multiply(mat_dsigmoid(self.layers[i]))
             deltas.insert(0,delta)
 
-        # Update weights
+        # Update weights: this is the bit that scales
         for i in range(len(self.weights)):
             dw = self.layers[i].T.dot(deltas[i])
             self.weights[i] += lrate*dw
             if i < len(self.weights)-1 and self.has_sparsified:
+                begin_time = time.clock()
                 self.weights[i][self.sparsifiers[i]] = 0
                 self.weights[i].eliminate_zeros()
+                end_time = time.clock()
+                self.bp_times.append(end_time - begin_time)
 
         # Return error
-        end_time = time.clock()
-        self.bp_times.append(end_time - begin_time)
         return error.sum()
 
     def expando(self):
@@ -230,9 +231,9 @@ def profile_expando_range():
 # -----------------------------------------------------------------------------
 if __name__ == '__main__':
     samples, dims = create_mnist_samples()
-    network = MLP(dims, 8, 10)
-    num_epochs = 1
-    num_iters = 30000
+    network = MLP(dims, 4, 10)
+    num_epochs = 5
+    num_iters = 1000
     prev_time = time.clock()
     for epoch in xrange(num_epochs):
         for i in xrange(num_iters):
@@ -240,6 +241,8 @@ if __name__ == '__main__':
                 print "==============="
                 print "sample: ", i, " / ", num_iters, " time: ", time.clock()
                 print "epoch: ", epoch, " time taken: ", time.clock() - prev_time
+                if network.bp_times:
+                    print "last bp_time: ", network.bp_times[-1]
                 prev_time = time.clock()
                 network.check_sparsity()
                 print "==============="
