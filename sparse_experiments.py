@@ -48,15 +48,14 @@ def sparsify_vec(vec, thresh=0.99):
             new_arr[x] = 0
     return new_arr
 
+
 if __name__ == "__main__":
     for arr_size in [50, 100, 200, 400, 800, 1600]:
         # rand_vec = np.matrix(sparsify_vec(npr.random(arr_size)))
         rand_vec = np.matrix(npr.random(arr_size))
-        csc_vec = sci_sp.csc_matrix(rand_vec)
+        csr_vec = sci_sp.csr_matrix(rand_vec)
         rand_mat = np.matrix(sparsify_mat(npr.random((arr_size, arr_size))))
-        csc_mat = sci_sp.csc_matrix(rand_mat)
-        print len(csc_mat.indices)
-        print len(csc_vec.indices)
+        csr_mat = sci_sp.csr_matrix(rand_mat)
         print "array size: ", arr_size
         curr_sparses, curr_denses = [], []
         for x in xrange(1000):
@@ -66,7 +65,7 @@ if __name__ == "__main__":
             curr_denses.append(dense_end_time - dense_begin_time)
         for x in xrange(1000):
             sparse_begin_time = time.clock()
-            sparse_res = sparse_col_vec_dot(csc_mat, csc_vec.T)
+            sparse_res = sparse_col_vec_dot(csr_mat, csr_vec.T)
             sparse_end_time = time.clock()
             curr_sparses.append(sparse_end_time - sparse_begin_time)
         print np.median(np.array(curr_sparses)), np.median(np.array(curr_denses))

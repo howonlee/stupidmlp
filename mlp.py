@@ -116,9 +116,22 @@ class MLP:
         self.bp_times.append(end_time - begin_time)
         return error.sum()
 
-    def sparsify(self):
+    def expando(self):
+        # add to hidden layer
+        # add to adjacent weights
+        pass
+
+    def check_sparsity(self):
         for i in range(len(self.weights)):
+            print len(self.weights[i].indices), " / ",\
+                    reduce(lambda x, y: x * y, self.weights[i].shape)
+
+    def sparsify(self):
+        # anything below the median, basically
+        for i in range(len(self.weights)-1): # not the softmax layer
+            thresh = np.median(np.abs(self.weights[i].toarray()))
             self.weights[i][np.abs(self.weights[i]) < thresh] = 0
+            self.weights[i].eliminate_zeros()
 
 def onehots(n):
     arr = np.array([-1.0] * 10)
@@ -194,13 +207,19 @@ def profile_expando_range():
 # -----------------------------------------------------------------------------
 if __name__ == '__main__':
     samples, dims = create_mnist_samples()
-    network = MLP(dims, 30, 10)
-    num_iters = 5000
+    network = MLP(dims, 32, 10)
+    num_iters = 35000
     for i in xrange(num_iters):
         if i % 100 == 0:
+            print "==============="
             print "sample: ", i, " / ", num_iters, " time: ", time.clock()
+            network.check_sparsity()
+            print "==============="
+        if i % 5000 == 0:
+            network.sparsify()
         n = np.random.randint(samples.size)
         network.propagate_forward(samples['input'][n])
         network.propagate_backward(samples['output'][n])
+    network.sparsify()
+    network.check_sparsity()
     print test_network(network, samples[40000:40500])
-    # network.sparsify()
