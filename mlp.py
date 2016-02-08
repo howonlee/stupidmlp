@@ -199,12 +199,16 @@ def profile_expando_range():
 if __name__ == '__main__':
     samples, dims = create_mnist_samples()
     network = MLP(dims, 100, 10)
-    num_iters = 30000
+    num_iters = 50
     for i in xrange(num_iters):
         if i % 10 == 0:
-            print "sample: ", i, " / ", num_iters
+            print "sample: ", i, " / ", num_iters, " time: ", time.clock()
         n = np.random.randint(samples.size)
         network.propagate_forward(samples['input'][n])
         network.propagate_backward(samples['output'][n])
-    print test_network(network, samples[40000:40500])
+    plt.hist(network.weights[0].todense().ravel().T)
+    plt.gca().set_xscale("log")
+    plt.gca().set_yscale("log")
+    plt.show()
+    # print test_network(network, samples[40000:40500])
     # network.sparsify()

@@ -6,7 +6,8 @@ if __name__ == "__main__":
     plt.hist(np.abs(weights).ravel(), bins=100)
     plt.gca().set_xscale("log")
     plt.gca().set_yscale("log")
-    plt.show()
     # killed, basically
-    print np.ones_like(weights).sum()
-    print (np.abs(weights) < 0.0000000000001).sum()
+    curr_weights = np.array([member for member in list(weights.ravel()) if member != 0])
+    print np.median(curr_weights)
+    # kprint np.ones_like(weights).sum()
+    # kprint (np.abs(weights) < 0.0000000000001).sum()

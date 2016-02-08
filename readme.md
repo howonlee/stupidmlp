@@ -14,11 +14,11 @@ Start off with a backprop MLP with fully dense layers, but in a sparse data stru
 
 Then, you just do backprop normally through it. That's O(input * log_2 (end hidden layer)).
 
-Then, kill half the weights, any weight less than the median. Because of the radical skew nature of the weights, that's somewhat like taking away the money from the bottom 50% of the population: it won't affect the economy. (Less than, say, killing W. Gates III) Your backprops have to be sparse matrix multiplications and stuff now. But if you take advantage of that sparsity, your backprop step would take (1/2) * log_2 (end hidden layer) ops.
+Then, kill half the weights, any weight less than the median. Because of the radical skew nature of the weights, killing that many does not matter. You will kill them permanently, they will stop existing for the network. Your backprops have to be sparse matrix multiplications and stuff now. But if you take advantage of that sparsity, your backprop step would take (1/2) * log_2 (end hidden layer) ops.
 
 Now, "expando" the hidden layer to have 2 * the current number of hidden units. Then train again (which takes... O(input * log_2 (end hidden layer)), still, because we killed half the weights). Then kill half the weights again. And so on, until you "expando" to the last hidden unit side that you want.
 
-Of course, you went through a lot more epochs this way. O(log_2(end hidden layer)) times more epochs. So a full account is that it takes O(input * log_2(end hidden layer) ** 2). Ain't that spiffy?
+Of course, you went through a lot more epochs this way. O(log_2(end hidden layer)) times more passes for what would have been one pass in normal backprop. So a full account is that it takes O(input * log_2(end hidden layer) ** 2). Ain't that spiffy?
 
 Results
 ===
