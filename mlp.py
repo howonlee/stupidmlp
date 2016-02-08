@@ -64,9 +64,12 @@ class MLP:
 
         # Build weights matrix (randomly)
         self.weights = []
+        self.sparsifiers = []
+        self.has_sparsified = False
         for i in range(n-1):
             new_weights = (2 * (npr.random((self.layers[i].size, self.layers[i+1].size))) - 1) * 0.00001
             self.weights.append(sci_sp.csc_matrix(new_weights))
+            self.sparsifiers.append(np.zeros_like(new_weights))
 
     def propagate_forward(self, data):
         ''' Propagate data from input layer to output layer. '''
@@ -106,6 +109,9 @@ class MLP:
         for i in range(len(self.weights)):
             dw = self.layers[i].T.dot(deltas[i])
             self.weights[i] += lrate*dw
+            if i < len(self.weights)-1 and self.has_sparsified:
+                self.weights[i][self.sparsifiers[i]] = 0
+                self.weights[i].eliminate_zeros()
 
         # Return error
         end_time = time.clock()
@@ -113,10 +119,22 @@ class MLP:
         return error.sum()
 
     def expando(self):
+        # expand weights by hstack each time
         for i in range(1, len(self.layers)-1):
-            self.layers[i] = something new ###########
-        for i in range(0, len(self.weights)):
-            self.weights[i] = something new ##########3
+            print "begin layer: ", self.layers[i].shape
+            arr_layer = self.layers[i].toarray()
+            self.layers[i] = sci_sp.csc_matrix(np.hstack((arr_layer, arr_layer)))
+            print "end layer: ", self.layers[i].shape
+        for i in range(0, len(self.weights)-1):
+            print "begin weight: ", self.weights[i].shape
+            arr_weights = self.weights[i].toarray()
+            self.weights[i] = sci_sp.csc_matrix(np.hstack((arr_weights, arr_weights)))
+            self.sparsifiers[i] = np.hstack((self.sparsifiers[i], self.sparsifiers[i]))
+            print "end weight: ", self.weights[i].shape
+        print "begin weight: ", self.weights[-1].shape
+        last_weights = self.weights[-1].toarray()
+        self.weights[-1] = sci_sp.csc_matrix(np.vstack((last_weights, last_weights)))
+        print "end weight: ", self.weights[-1].shape
 
     def check_sparsity(self):
         for i in range(len(self.weights)):
@@ -124,11 +142,18 @@ class MLP:
                     reduce(lambda x, y: x * y, self.weights[i].shape)
 
     def sparsify(self):
-        # anything below the median, basically
+        self.has_sparsified = True
+        # keep a record of everything that's been sparsified
         for i in range(len(self.weights)-1): # not the softmax layer
-            thresh = np.median(np.abs(self.weights[i].toarray()))
-            self.weights[i][np.abs(self.weights[i]) < thresh] = 0
-            self.weights[i].eliminate_zeros()
+            # so the median of existing weights above 0
+            thresh = np.median(
+                               np.abs(
+                                   self.weights[i].toarray()[np.abs(self.weights[i].toarray()) > 0]
+                                )
+                              )
+            # add to sparsifier
+            # kill based upon sparsifier, but in another place
+            self.sparsifiers[i] = np.logical_or(np.abs(self.weights[i].toarray()) < thresh, self.sparsifiers[i])
 
 def onehots(n):
     arr = np.array([-1.0] * 10)
@@ -205,19 +230,19 @@ def profile_expando_range():
 if __name__ == '__main__':
     samples, dims = create_mnist_samples()
     network = MLP(dims, 32, 10)
-    network.expando()
-    num_iters = 35000
-    for i in xrange(num_iters):
-        if i % 100 == 0:
-            print "==============="
-            print "sample: ", i, " / ", num_iters, " time: ", time.clock()
-            network.check_sparsity()
-            print "==============="
-        if i % 5000 == 0:
-            network.sparsify() # oh ho ho ho ho
-        n = np.random.randint(samples.size)
-        network.propagate_forward(samples['input'][n])
-        network.propagate_backward(samples['output'][n])
-    network.sparsify()
-    network.check_sparsity()
+    num_epochs = 1
+    num_iters = 20000
+    for x in xrange(num_epochs):
+        for i in xrange(num_iters):
+            if i % 100 == 0:
+                print "==============="
+                print "sample: ", i, " / ", num_iters, " time: ", time.clock()
+                network.check_sparsity()
+                print "==============="
+            n = np.random.randint(samples.size)
+            network.propagate_forward(samples['input'][n])
+            network.propagate_backward(samples['output'][n])
+        # network.expando()
+        # network.sparsify()
+        network.check_sparsity()
     print test_network(network, samples[40000:40500])
