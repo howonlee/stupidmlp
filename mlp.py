@@ -37,16 +37,12 @@ def dsigmoid(x):
     ''' Derivative of sigmoid above '''
     return 1.0-x**2
 
+#### must vectorize!!!
+
 def mat_dsigmoid(mat):
     new_mat = sci_sp.csc_matrix(mat)
     for x in xrange(mat.shape[1]):
         new_mat[0, x] = 1.0 - (mat[0, x] ** 2)
-    return new_mat
-
-def elem_mult(mat1, mat2):
-    new_mat = sci_sp.csc_matrix(mat1)
-    for x in xrange(mat1.shape[1]):
-        new_mat[0, x] += mat1[0, x] * mat2[0, x]
     return new_mat
 
 class MLP:
@@ -75,15 +71,15 @@ class MLP:
         for i in range(n-1):
             new_weights = (2 * (npr.random((self.layers[i].size, self.layers[i+1].size))) - 1) * 0.00001
             self.weights.append(sci_sp.csc_matrix(new_weights))
-            # self.weights.append(new_weights)
 
     def propagate_forward(self, data):
         ''' Propagate data from input layer to output layer. '''
         ''' Data is still in numpy format, hear? '''
 
         # Set input layer
-        for x in xrange(data.size):
-            self.layers[0][0, x] = data[x]
+        self.layers[0][0, 0:-1] = data
+        # for x in xrange(data.size):
+        #     self.layers[0][0, x] = data[x]
 
         # Propagate from layer 0 to layer n-1 using sigmoid as activation function
         for i in range(1,len(self.shape)):
@@ -100,20 +96,19 @@ class MLP:
         deltas = []
 
         # Compute error on output layer
-        error = target - self.layers[-1]
-        delta = elem_mult(error, mat_dsigmoid(self.layers[-1]))
+        error = sci_sp.csc_matrix(target - self.layers[-1])
+        delta = error.multiply(mat_dsigmoid(self.layers[-1]))
         deltas.append(delta)
 
         # Compute error on hidden layers
         for i in range(len(self.shape)-2,0,-1):
-            error = deltas[0].dot(self.weights[i].T)
-            delta = elem_mult(error, mat_dsigmoid(self.layers[i]))
+            error = sci_sp.csc_matrix(deltas[0].dot(self.weights[i].T))
+            delta = error.multiply(mat_dsigmoid(self.layers[i]))
             deltas.insert(0,delta)
 
         # Update weights
         for i in range(len(self.weights)):
             dw = self.layers[i].T.dot(deltas[i])
-            # dw = np.dot(layer.T,delta)
             self.weights[i] += lrate*dw
 
         # Return error
@@ -198,17 +193,16 @@ def profile_expando_range():
 # -----------------------------------------------------------------------------
 if __name__ == '__main__':
     samples, dims = create_mnist_samples()
-    network = MLP(dims, 100, 10)
-    num_iters = 50
+    network = MLP(dims, 30, 10)
+    num_iters = 300
     for i in xrange(num_iters):
-        if i % 10 == 0:
+        if i % 100 == 0:
             print "sample: ", i, " / ", num_iters, " time: ", time.clock()
+            # plt.imshow(network.weights[0].todense())
+            # plt.colorbar()
+            # plt.show()
         n = np.random.randint(samples.size)
         network.propagate_forward(samples['input'][n])
         network.propagate_backward(samples['output'][n])
-    plt.hist(network.weights[0].todense().ravel().T)
-    plt.gca().set_xscale("log")
-    plt.gca().set_yscale("log")
-    plt.show()
-    # print test_network(network, samples[40000:40500])
+    print test_network(network, samples[40000:40500])
     # network.sparsify()
