@@ -10,15 +10,17 @@ Alternatively, you can think of this as the end realization of the [Han Pool Tra
 Algorithm
 ===
 
-Start off with a backprop MLP with fully dense layers (just one in this, to keep it simple), but with weights in a sparse matrix data structure (so the sparse data structure, filled up densely like you're not supposed to do), and with a "starting hidden layer" of a really small size (less than log_2 (end hidden layer size)). The basic idea is that you will expand this. But first, you just do backprop normally through it. That's O(input * log_2 (end hidden layer)), times the number of data points, etc etc. I assume the input-hidden layer dominates, as it does in most shallow MLP's, and that it will keep on dominating.
+Normally, backprop (just the one step of it, on just one set of weights) is O(|W|), where |W| is the number of members in the weight matrix. I assume the input-hidden layer dominates, as it does in most shallow MLP's, and that it will keep on dominating, so think of that O(|W|) as O(number input units * number hidden units). That's what we're aiming to reduce.
+
+Start off with a backprop MLP with fully dense layers (just one in this, to keep it simple), but with weights in a sparse matrix data structure (so the sparse data structure, filled up densely like you're not supposed to do), and with a "starting hidden layer" of a really small size (less than log_2 (end hidden layer size)). The basic idea is that you will expand this. But first, you just do backprop normally through it. That's O(input * log_2 (end hidden layer)), times the number of data points, etc etc.
 
 Then, kill half the weights, any weight less than the median. Because of the radical skew nature of the weights, killing that many does not matter. You will kill them permanently, they will stop existing for the network. Your backprop has to use sparse matrix operations now. But if you take advantage of that sparsity, your backprop step would take (1/2) * input * log_2 (end hidden layer) ops.
 
 Now, "expando" the hidden layer to have 2 * the current number of hidden units. Then train again (which takes O(input * log_2 (end hidden layer)), still, because we killed half the weights). Then kill half the weights again. And so on, until you "expando" to the hidden unit size that you want.
 
-Of course, you went through more epochs this way. O(log_2(end hidden layer)) times more passes for what would have been one pass in normal backprop. So a full account is that it takes O(input * log_2(end hidden layer) ** 2).
+Of course, you went through more epochs this way. O(log_2(end hidden layer)) times more passes for what would have been one pass in normal backprop. So a full account is that it takes O(input * log_2(end hidden layer) ** 2) time.
 
-Ain't that spiffy? Very similar to [FastDTW](https://gi.cebitec.uni-bielefeld.de/teaching/2007summer/jclub/papers/Salvador2004.pdf).
+Isn't that spiffy? Very similar to [FastDTW](https://gi.cebitec.uni-bielefeld.de/teaching/2007summer/jclub/papers/Salvador2004.pdf).
 
 Results
 ===
@@ -26,7 +28,7 @@ Results
 Conclusion
 ===
 
-The next step, obviously, is to generalize to tensors and do this with RNNs proper, deeper nets, and to do it with GPU's. I can't don't own GPUs and probably won't pay for AWS GPU boxes, so RNNs it is.
+The next step, obviously, is to generalize to tensors and do this with RNNs proper, deeper nets, and to do it with GPU's. I can't don't own GPUs and probably won't pay for AWS GPU boxes, so RNNs it is. The other thing you could do is to get rid of the multiple passes somehow (maybe draw the typical pattern of sparsity on beforehand) so it could be in O(input * log_2(end hidden layer)) only.
 
 Before I even start on RNN's, I smell some possible roots of hyperbolic discounting, because of the nature of the sparsity that we would be looking for in an RNN. Whenever you ever see this sort of coarse-graining and fine-graining, I see if I can find heavy-tailed phenomena.
 

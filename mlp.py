@@ -43,10 +43,13 @@ def mat_dsigmoid(mat):
     return new_mat
 
 def sparse_outer(fst, snd, to_calc):
-    new = sci_sp.dok_matrix((fst.size, snd.size))
-    for fst_idx, snd_idx in to_calc.keys():
-        new[fst_idx, snd_idx] = fst[fst_idx] * snd[snd_idx]
-    return new.tocsr()
+    new = np.zeros(to_calc.shape)
+    fst = fst.toarray()
+    snd = snd.toarray()
+    for row_idx, col_idx in zip(to_calc.row, to_calc.col):
+        # matrices, remember
+        new[row_idx, col_idx] = fst[0, row_idx] * snd[0, col_idx]
+    return sci_sp.csr_matrix(new)
 
 class MLP:
     '''
@@ -76,7 +79,7 @@ class MLP:
         for i in range(n-1):
             new_weights = (2 * (npr.random((self.layers[i].size, self.layers[i+1].size))) - 1) * 0.00001
             self.weights.append(sci_sp.csc_matrix(new_weights))
-            self.sparsifiers.append(np.ones_like(new_weights))
+            self.sparsifiers.append(sci_sp.coo_matrix(np.ones_like(new_weights)))
 
     def propagate_forward(self, data):
         ''' Propagate data from input layer to output layer. '''
@@ -115,11 +118,11 @@ class MLP:
 
         # Update weights: this is the bit that scales
         for i in range(len(self.weights)):
-            dw = self.layers[i].T.dot(deltas[i]) ### replace this one
+            if i < len(self.weights)-1:
+                dw = sparse_outer(self.layers[i], deltas[i], self.sparsifiers[i])
+            else:
+                dw = self.layers[i].T.dot(deltas[i]) ### dense at the last one
             self.weights[i] += lrate*dw
-            if i < len(self.weights)-1 and self.has_sparsified:
-                self.weights[i][self.sparsifiers[i]] = 0
-                self.weights[i].eliminate_zeros()
 
         # Return error
         end_time = time.clock()
@@ -137,7 +140,13 @@ class MLP:
             print "begin weight: ", self.weights[i].shape
             arr_weights = self.weights[i].toarray()
             self.weights[i] = sci_sp.csc_matrix(np.hstack((arr_weights, arr_weights)))
-            self.sparsifiers[i] = np.hstack((self.sparsifiers[i], self.sparsifiers[i]))
+            self.sparsifiers[i] = \
+                    sci_sp.coo_matrix(
+                            np.hstack((
+                                self.sparsifiers[i].toarray(),
+                                self.sparsifiers[i].toarray()
+                                ))
+                            )
             print "end weight: ", self.weights[i].shape
         print "begin weight: ", self.weights[-1].shape
         last_weights = self.weights[-1].toarray()
@@ -161,7 +170,10 @@ class MLP:
                               )
             # add to sparsifier
             # kill based upon sparsifier, but in the actual backprop
-            self.sparsifiers[i] = np.logical_and(np.abs(self.weights[i].toarray()) > thresh, self.sparsifiers[i])
+            new_sparsifier = self.sparsifiers[i].toarray()
+            self.sparsifiers[i] = sci_sp.coo_matrix(np.logical_and(np.abs(self.weights[i].toarray()) > thresh, new_sparsifier))
+            self.weights[i][np.abs(self.weights[i].toarray()) < thresh] = 0
+            self.weights[i].eliminate_zeros()
 
 def onehots(n):
     arr = np.array([-1.0] * 10)
@@ -238,8 +250,8 @@ def profile_expando_range():
 def test_expando():
     samples, dims = create_mnist_samples()
     network = MLP(dims, 32, 10)
-    num_epochs = 5
-    num_iters = 1000
+    num_epochs = 1
+    num_iters = 30000
     prev_time = time.clock()
     for epoch in xrange(num_epochs):
         for i in xrange(num_iters):
@@ -256,7 +268,7 @@ def test_expando():
             network.propagate_forward(samples['input'][n])
             network.propagate_backward(samples['output'][n])
         network.expando()
-        # network.sparsify()
+        network.sparsify()
         network.check_sparsity()
     print test_network(network, samples[40000:40500])
 
