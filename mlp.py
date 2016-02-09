@@ -42,6 +42,12 @@ def mat_dsigmoid(mat):
     new_mat.data = 1.0 - (new_mat.data ** 2)
     return new_mat
 
+def sparse_outer(fst, snd, to_calc):
+    new = sci_sp.dok_matrix((fst.size, snd.size))
+    for fst_idx, snd_idx in to_calc.keys():
+        new[fst_idx, snd_idx] = fst[fst_idx] * snd[snd_idx]
+    return new.tocsr()
+
 class MLP:
     '''
     Multi-layer perceptron class.
@@ -70,7 +76,7 @@ class MLP:
         for i in range(n-1):
             new_weights = (2 * (npr.random((self.layers[i].size, self.layers[i+1].size))) - 1) * 0.00001
             self.weights.append(sci_sp.csc_matrix(new_weights))
-            self.sparsifiers.append(np.zeros_like(new_weights))
+            self.sparsifiers.append(np.ones_like(new_weights))
 
     def propagate_forward(self, data):
         ''' Propagate data from input layer to output layer. '''
@@ -155,7 +161,7 @@ class MLP:
                               )
             # add to sparsifier
             # kill based upon sparsifier, but in the actual backprop
-            self.sparsifiers[i] = np.logical_or(np.abs(self.weights[i].toarray()) < thresh, self.sparsifiers[i])
+            self.sparsifiers[i] = np.logical_and(np.abs(self.weights[i].toarray()) > thresh, self.sparsifiers[i])
 
 def onehots(n):
     arr = np.array([-1.0] * 10)
@@ -254,11 +260,5 @@ def test_expando():
         network.check_sparsity()
     print test_network(network, samples[40000:40500])
 
-def sparse_outer(fst, snd, to_calc):
-    new = sci_sp.dok_matrix((fst.size, snd.size))
-    for fst_idx, snd_idx in to_calc.keys():
-        new[fst_idx, snd_idx] = fst[fst_idx] * snd[snd_idx]
-    return new.tocsr()
-
 if __name__ == '__main__':
-    test_sparseouter()
+    test_expando()
