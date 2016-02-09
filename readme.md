@@ -20,7 +20,7 @@ Now, "expando" the hidden layer to have 2 * the current number of hidden units. 
 
 Of course, you went through more epochs this way. O(log_2(end hidden layer)) times more passes for what would have been one pass in normal backprop. So a full account is that it takes O(input * log_2(end hidden layer) ** 2) time.
 
-Isn't that spiffy? Very similar to [FastDTW](https://gi.cebitec.uni-bielefeld.de/teaching/2007summer/jclub/papers/Salvador2004.pdf).
+It's very similar to [FastDTW](https://gi.cebitec.uni-bielefeld.de/teaching/2007summer/jclub/papers/Salvador2004.pdf). You may also think it a little bit dishonest, but it _is_  the case that the neural network can use that expanded representation.
 
 Results
 ===

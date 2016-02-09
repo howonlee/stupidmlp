@@ -166,7 +166,7 @@ class MLP:
             thresh = np.percentile(
                                np.abs(
                                    self.weights[i].toarray()[np.abs(self.weights[i].toarray()) > 0]
-                                ), 50
+                                ), 40
                               )
             # add to sparsifier
             # kill based upon sparsifier, but in the actual backprop
@@ -249,9 +249,9 @@ def profile_expando_range():
 
 def test_expando():
     samples, dims = create_mnist_samples()
-    network = MLP(dims, 32, 10)
+    network = MLP(dims, 2, 10)
     num_epochs = 1
-    num_iters = 30000
+    num_iters = 3000
     prev_time = time.clock()
     for epoch in xrange(num_epochs):
         for i in xrange(num_iters):
@@ -267,8 +267,8 @@ def test_expando():
             n = np.random.randint(samples.size)
             network.propagate_forward(samples['input'][n])
             network.propagate_backward(samples['output'][n])
-        network.expando()
-        network.sparsify()
+        # network.expando()
+        # network.sparsify()
         network.check_sparsity()
     print test_network(network, samples[40000:40500])
 
