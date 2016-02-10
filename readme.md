@@ -1,16 +1,19 @@
-Sparse MLP and justifications (or: Poking At Causation, part 3a / 3)
+Stupid Optimization on MLP (or: Poking At Causation, part 3a / 3)
 ===
 
 You can get most of the performance of a neural network with an approximation to backpropagation faster than O(|W|), meaning faster than the order of the number of members of the weight matrix, with sparsification. Here is the evidence.
 
+![speed]()
 
+![accuracy]()
 
+A neural network's weights, after the random initialization and training, is composed of numbers of radically unequal magnitude. If you take a histogram of the absolute value of all the weights, you will see a remarkably heavy-tailed histogram. But that high skew also means that nearly all of the weights are useless, and can be seen to be useless almost immediately. It also means that you should be suspicious of a positive feedback effect, which is indeed seen with the gradients.
 
-A neural network's weights, after the random initialization and training, is composed of numbers of radically unequal magnitude. If you take a histogram of the absolute value of all the weights, you will see a remarkably heavy-tailed histogram. But that high skew also means that nearly all of the weights are useless, and can be seen to be useless almost immediately.
+I haven't found this cited in the literature after a long while searching, but the literature is sort of "spammed" with lots of articles noting skew distributions in actual neurons in actual brains that you can squish.
 
-This means that you can get away with a remarkably stupid optimization, if you have a fast sparse outer product. Just kill the useless weights after a few "burn-in" iterations of SGD, and then go through with the much, much sparsified net and get the rest of the iterations done much quicker. You still get most of the representational power of all of those hidden units.
+Anyhow, the heavy tail phenomenon means that you can get away with a remarkably stupid optimization, if you have a sparse outer product operation. Just kill the useless weights after a few "burn-in" iterations of SGD, and then go through with the much, much sparsified net and get the rest of the iterations done much quicker. You still get most of the representational power of all of those hidden units, as you can see above.
 
-Typical points in the neural network weight attractor space have this property. I don't know if the attractor _itself_ has a similar, scaling or heavy-tailed structure, but that should be investigated. I found [something in word2vec representations](http://howonlee.github.io/2016/02/05/Fractal-20Wordvecs.html), at least.
+Typical points in the neural network weight attractor space have this heavy-tail property, with a remarkable durability to the actual dataset. I don't know if the attractor _itself_ has a similar, scaling or heavy-tailed structure, but that should be investigated. I found [something in word2vec representations](http://howonlee.github.io/2016/02/05/Fractal-20Wordvecs.html), at least.
 
 If you need a more sophisticated way to put it, note that the directions in the high-dimensional weight space which have the highest Lyapunov exponent contribute the most to the Kolmogorov-Sinai information (which can be estimated as the sum of the positive Lyapunov exponents), and of course gradient descent can be thought of as a flow in weight space. That can be a sort of theoretical justification for being able to kill nearly all of the weights, although it isn't quite clear what Kolmogorov-Sinai entropy means to this system.
 
