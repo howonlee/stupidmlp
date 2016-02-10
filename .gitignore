@@ -1,5 +1,4 @@
 cifar*
-res
 *.gz
 *.txt
 *.pyc

@@ -256,6 +256,7 @@ def profile_expando_range():
     plt.show()
 
 def test_sparsify(num_epochs, num_sparsifications, num_burnin, num_iters, hidden_units):
+    total_begin_time = time.clock()
     samples, dims = create_mnist_samples()
     network = MLP(dims, hidden_units, 10)
     for i in xrange(num_burnin):
@@ -286,11 +287,25 @@ def test_sparsify(num_epochs, num_sparsifications, num_burnin, num_iters, hidden
         network.check_sparsity()
     print "num_epochs: ", str(num_epochs), " num_sparsifications: ", str(num_sparsifications), " num_burnin: ", str(num_burnin), " num_iters: ", str(num_iters), " hidden_units: ", str(hidden_units)
     print "accuracy: ", test_network(network, samples[40000:40500])
+    print "total time: ", str(time.clock() - total_begin_time)
 
 if __name__ == '__main__':
-    test_sparsify(num_epochs=1, num_sparsifications=0, num_burnin=200, num_iters=30000, hidden_units=100)
-    test_sparsify(num_epochs=1, num_sparsifications=1, num_burnin=200, num_iters=30000, hidden_units=100)
-    test_sparsify(num_epochs=1, num_sparsifications=2, num_burnin=200, num_iters=30000, hidden_units=100)
-    test_sparsify(num_epochs=1, num_sparsifications=3, num_burnin=200, num_iters=30000, hidden_units=100)
-    test_sparsify(num_epochs=1, num_sparsifications=4, num_burnin=200, num_iters=30000, hidden_units=100)
-    test_sparsify(num_epochs=1, num_sparsifications=5, num_burnin=200, num_iters=30000, hidden_units=100)
+    # test_sparsify(num_epochs=1, num_sparsifications=0, num_burnin=200, num_iters=30000, hidden_units=2)
+    # test_sparsify(num_epochs=1, num_sparsifications=0, num_burnin=200, num_iters=30000, hidden_units=4)
+    # test_sparsify(num_epochs=1, num_sparsifications=0, num_burnin=200, num_iters=30000, hidden_units=8)
+    # test_sparsify(num_epochs=1, num_sparsifications=0, num_burnin=200, num_iters=30000, hidden_units=16)
+    # test_sparsify(num_epochs=1, num_sparsifications=0, num_burnin=200, num_iters=30000, hidden_units=32)
+    # test_sparsify(num_epochs=1, num_sparsifications=0, num_burnin=200, num_iters=30000, hidden_units=64)
+    # print "now sparsifying..."
+    # test_sparsify(num_epochs=1, num_sparsifications=0, num_burnin=200, num_iters=30000, hidden_units=128)
+    # test_sparsify(num_epochs=1, num_sparsifications=1, num_burnin=200, num_iters=30000, hidden_units=128)
+    # test_sparsify(num_epochs=1, num_sparsifications=2, num_burnin=200, num_iters=30000, hidden_units=128)
+    # test_sparsify(num_epochs=1, num_sparsifications=3, num_burnin=200, num_iters=30000, hidden_units=128)
+    # test_sparsify(num_epochs=1, num_sparsifications=4, num_burnin=200, num_iters=30000, hidden_units=128)
+    # test_sparsify(num_epochs=1, num_sparsifications=5, num_burnin=200, num_iters=30000, hidden_units=128)
+    test_sparsify(num_epochs=1, num_sparsifications=0, num_burnin=200, num_iters=30000, hidden_units=4)
+    test_sparsify(num_epochs=1, num_sparsifications=1, num_burnin=200, num_iters=30000, hidden_units=8)
+    test_sparsify(num_epochs=1, num_sparsifications=2, num_burnin=200, num_iters=30000, hidden_units=16)
+    test_sparsify(num_epochs=1, num_sparsifications=3, num_burnin=200, num_iters=30000, hidden_units=32)
+    test_sparsify(num_epochs=1, num_sparsifications=4, num_burnin=200, num_iters=30000, hidden_units=64)
+    test_sparsify(num_epochs=1, num_sparsifications=5, num_burnin=200, num_iters=30000, hidden_units=128)

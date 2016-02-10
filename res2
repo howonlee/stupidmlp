@@ -1,0 +1,18 @@
+num_epochs:  1  num_sparsifications:  0  num_burnin:  200  num_iters:  30000  hidden_units:  4
+accuracy:  0.204
+total time:  203.751402
+num_epochs:  1  num_sparsifications:  1  num_burnin:  200  num_iters:  30000  hidden_units:  8
+accuracy:  0.682
+total time:  191.284945
+num_epochs:  1  num_sparsifications:  2  num_burnin:  200  num_iters:  30000  hidden_units:  16
+accuracy:  0.88
+total time:  200.53599
+num_epochs:  1  num_sparsifications:  3  num_burnin:  200  num_iters:  30000  hidden_units:  32
+accuracy:  0.87
+total time:  199.294304
+num_epochs:  1  num_sparsifications:  4  num_burnin:  200  num_iters:  30000  hidden_units:  64
+accuracy:  0.89
+total time:  225.636255
+num_epochs:  1  num_sparsifications:  5  num_burnin:  200  num_iters:  30000  hidden_units:  128
+accuracy:  0.832
+total time:  256.494828
