@@ -87,8 +87,6 @@ class MLP:
 
         # Set input layer
         self.layers[0][0, 0:-1] = data
-        # for x in xrange(data.size):
-        #     self.layers[0][0, x] = data[x]
 
         # Propagate from layer 0 to layer n-1 using sigmoid as activation function
         for i in range(1,len(self.shape)):
@@ -106,7 +104,6 @@ class MLP:
 
         # Compute error on output layer
         error = sci_sp.csc_matrix(target - self.layers[-1])
-        # .multiply is... surprisingly involved
         delta = error.multiply(mat_dsigmoid(self.layers[-1]))
         deltas.append(delta)
 
@@ -128,31 +125,6 @@ class MLP:
         end_time = time.clock()
         self.bp_times.append(end_time - begin_time)
         return error.sum()
-
-    def expando(self):
-        # expand weights by hstack each time
-        # this is a bit of a failed experiment
-        for i in range(1, len(self.layers)-1):
-            print "begin layer: ", self.layers[i].shape
-            arr_layer = self.layers[i].toarray()
-            self.layers[i] = sci_sp.csc_matrix(np.hstack((arr_layer, arr_layer)))
-            print "end layer: ", self.layers[i].shape
-        for i in range(0, len(self.weights)-1):
-            print "begin weight: ", self.weights[i].shape
-            arr_weights = self.weights[i].toarray()
-            self.weights[i] = sci_sp.csc_matrix(np.hstack((arr_weights, arr_weights)))
-            self.sparsifiers[i] = \
-                    sci_sp.coo_matrix(
-                            np.hstack((
-                                self.sparsifiers[i].toarray(),
-                                self.sparsifiers[i].toarray()
-                                ))
-                            )
-            print "end weight: ", self.weights[i].shape
-        print "begin weight: ", self.weights[-1].shape
-        last_weights = self.weights[-1].toarray()
-        self.weights[-1] = sci_sp.csc_matrix(np.vstack((last_weights, last_weights)))
-        print "end weight: ", self.weights[-1].shape
 
     def check_sparsity(self):
         for i in range(len(self.weights)):
@@ -218,43 +190,6 @@ def test_network(net, samples):
             correct += 1
     # lots of less naive things out there
     return float(correct) / float(total)
-
-def test_conventional_net():
-    samples, dims = create_mnist_samples()
-    network = MLP(dims, 100, 10)
-    for i in xrange(25000):
-        if i % 100 == 0:
-            print "sample: ", i
-        n = np.random.randint(samples.size)
-        network.propagate_forward(samples['input'][n])
-        network.propagate_backward(samples['output'][n])
-    print test_network(network, samples[40000:40500])
-    network.sparsify()
-
-def profile_hidden_range():
-    samples, dims = create_mnist_samples()
-    networks = [MLP(dims, hids, 10) for hids in range(16, 128)]
-    times = []
-    for idx, curr_network in enumerate(networks):
-        for i in xrange(2000):
-            n = np.random.randint(samples.size)
-            curr_network.propagate_forward(samples['input'][n])
-            curr_network.propagate_backward(samples['output'][n])
-        curr_time = np.median(np.array(curr_network.bp_times))
-        print idx, curr_time
-        times.append(np.log(curr_time))
-    plt.plot(times)
-    plt.show()
-
-def profile_expando_range():
-    samples, dims = create_mnist_samples()
-    network = MLP(dims, 16, 10)
-    for i in xrange(10000):
-        n = np.random.randint(samples.size)
-        network.propagate_forward(samples['input'][n])
-        network.propagate_backward(samples['output'][n])
-    plt.hist(np.abs(network.weights[0].ravel()))
-    plt.show()
 
 def test_sparsify(num_epochs, num_sparsifications, num_burnin, num_iters, hidden_units):
     total_begin_time = time.clock()
