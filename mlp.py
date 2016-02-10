@@ -257,9 +257,9 @@ def profile_expando_range():
 
 def test_sparsify():
     samples, dims = create_mnist_samples()
-    network = MLP(dims, 16, 10)
+    network = MLP(dims, 100, 10)
     num_epochs = 1
-    num_sparsifications = 3
+    num_sparsifications = 8
     num_burnin = 200
     num_iters = 30000
     for i in xrange(num_burnin):
@@ -291,4 +291,4 @@ def test_sparsify():
     print test_network(network, samples[40000:40500])
 
 if __name__ == '__main__':
-    test_expando()
+    test_sparsify()
