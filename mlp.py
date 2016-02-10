@@ -155,7 +155,7 @@ class MLP:
 
     def check_sparsity(self):
         for i in range(len(self.weights)):
-            print len(self.weights[i].indices), " / ",\
+            print >> sys.stderr, len(self.weights[i].indices), " / ",\
                     reduce(lambda x, y: x * y, self.weights[i].shape)
 
     def stupid_sparsify(self):
@@ -255,13 +255,9 @@ def profile_expando_range():
     plt.hist(np.abs(network.weights[0].ravel()))
     plt.show()
 
-def test_sparsify():
+def test_sparsify(num_epochs, num_sparsifications, num_burnin, num_iters, hidden_units):
     samples, dims = create_mnist_samples()
-    network = MLP(dims, 100, 10)
-    num_epochs = 1
-    num_sparsifications = 8
-    num_burnin = 200
-    num_iters = 30000
+    network = MLP(dims, hidden_units, 10)
     for i in xrange(num_burnin):
         n = np.random.randint(samples.size)
         network.propagate_forward(samples['input'][n])
@@ -269,26 +265,32 @@ def test_sparsify():
     # network.stupid_sparsify()
     for x in xrange(num_sparsifications):
         network.sparsify()
-    print "burnin finished"
+    print >> sys.stderr, "burnin finished"
     network.check_sparsity()
     prev_time = time.clock()
     for epoch in xrange(num_epochs):
         for i in xrange(num_iters):
             if i % 100 == 0:
-                print "==============="
-                print "sample: ", i, " / ", num_iters, " time: ", time.clock()
-                print "epoch: ", epoch, " time taken: ", time.clock() - prev_time
+                print >> sys.stderr, "==============="
+                print >> sys.stderr, "sample: ", i, " / ", num_iters, " time: ", time.clock()
+                print >> sys.stderr, "epoch: ", epoch, " time taken: ", time.clock() - prev_time
                 if network.bp_times:
-                    print "last bp_time: ", network.bp_times[-1]
+                    print >> sys.stderr, "last bp_time: ", network.bp_times[-1]
                 prev_time = time.clock()
                 network.check_sparsity()
-                print "==============="
+                print >> sys.stderr, "==============="
             n = np.random.randint(samples.size)
             network.propagate_forward(samples['input'][n])
             network.propagate_backward(samples['output'][n])
         # was also expanding, but that doesn't work as well
         network.check_sparsity()
-    print test_network(network, samples[40000:40500])
+    print "num_epochs: ", str(num_epochs), " num_sparsifications: ", str(num_sparsifications), " num_burnin: ", str(num_burnin), " num_iters: ", str(num_iters), " hidden_units: ", str(hidden_units)
+    print "accuracy: ", test_network(network, samples[40000:40500])
 
 if __name__ == '__main__':
-    test_sparsify()
+    test_sparsify(num_epochs=1, num_sparsifications=0, num_burnin=200, num_iters=30000, hidden_units=100)
+    test_sparsify(num_epochs=1, num_sparsifications=1, num_burnin=200, num_iters=30000, hidden_units=100)
+    test_sparsify(num_epochs=1, num_sparsifications=2, num_burnin=200, num_iters=30000, hidden_units=100)
+    test_sparsify(num_epochs=1, num_sparsifications=3, num_burnin=200, num_iters=30000, hidden_units=100)
+    test_sparsify(num_epochs=1, num_sparsifications=4, num_burnin=200, num_iters=30000, hidden_units=100)
+    test_sparsify(num_epochs=1, num_sparsifications=5, num_burnin=200, num_iters=30000, hidden_units=100)
