@@ -131,6 +131,7 @@ class MLP:
 
     def expando(self):
         # expand weights by hstack each time
+        # this is a bit of a failed experiment
         for i in range(1, len(self.layers)-1):
             print "begin layer: ", self.layers[i].shape
             arr_layer = self.layers[i].toarray()
@@ -290,22 +291,10 @@ def test_sparsify(num_epochs, num_sparsifications, num_burnin, num_iters, hidden
     print "total time: ", str(time.clock() - total_begin_time)
 
 if __name__ == '__main__':
-    # test_sparsify(num_epochs=1, num_sparsifications=0, num_burnin=200, num_iters=30000, hidden_units=2)
-    # test_sparsify(num_epochs=1, num_sparsifications=0, num_burnin=200, num_iters=30000, hidden_units=4)
-    # test_sparsify(num_epochs=1, num_sparsifications=0, num_burnin=200, num_iters=30000, hidden_units=8)
-    # test_sparsify(num_epochs=1, num_sparsifications=0, num_burnin=200, num_iters=30000, hidden_units=16)
-    # test_sparsify(num_epochs=1, num_sparsifications=0, num_burnin=200, num_iters=30000, hidden_units=32)
-    # test_sparsify(num_epochs=1, num_sparsifications=0, num_burnin=200, num_iters=30000, hidden_units=64)
+    for x in [2,4,8,16,32,64]:
+        test_sparsify(num_epochs=1, num_sparsifications=0, num_burnin=200, num_iters=30000, hidden_units=x)
     # print "now sparsifying..."
-    # test_sparsify(num_epochs=1, num_sparsifications=0, num_burnin=200, num_iters=30000, hidden_units=128)
-    # test_sparsify(num_epochs=1, num_sparsifications=1, num_burnin=200, num_iters=30000, hidden_units=128)
-    # test_sparsify(num_epochs=1, num_sparsifications=2, num_burnin=200, num_iters=30000, hidden_units=128)
-    # test_sparsify(num_epochs=1, num_sparsifications=3, num_burnin=200, num_iters=30000, hidden_units=128)
-    # test_sparsify(num_epochs=1, num_sparsifications=4, num_burnin=200, num_iters=30000, hidden_units=128)
-    # test_sparsify(num_epochs=1, num_sparsifications=5, num_burnin=200, num_iters=30000, hidden_units=128)
-    test_sparsify(num_epochs=1, num_sparsifications=0, num_burnin=200, num_iters=30000, hidden_units=4)
-    test_sparsify(num_epochs=1, num_sparsifications=1, num_burnin=200, num_iters=30000, hidden_units=8)
-    test_sparsify(num_epochs=1, num_sparsifications=2, num_burnin=200, num_iters=30000, hidden_units=16)
-    test_sparsify(num_epochs=1, num_sparsifications=3, num_burnin=200, num_iters=30000, hidden_units=32)
-    test_sparsify(num_epochs=1, num_sparsifications=4, num_burnin=200, num_iters=30000, hidden_units=64)
-    test_sparsify(num_epochs=1, num_sparsifications=5, num_burnin=200, num_iters=30000, hidden_units=128)
+    for x in [0,1,2,3,4,5]:
+        test_sparsify(num_epochs=1, num_sparsifications=x, num_burnin=200, num_iters=30000, hidden_units=128)
+    for x, y in zip([0,1,2,3,4,5], [4,8,16,32,64,128])
+        test_sparsify(num_epochs=1, num_sparsifications=x, num_burnin=200, num_iters=30000, hidden_units=y)
