@@ -3,13 +3,16 @@ Stupid Optimization on MLP (or: Poking At Causation, part 3a / 3)
 
 There's quite a few multilayer perceptron pruning approaches. I tend to believe that most are not stupid enough. Regularization-based approaches, for example, don't make the actual optimization process any faster, and the brute-force and sensitivity-based approaches _cannot_ make the actual optimization faster because they happen after learning. Cascade correlation and the like are not feasible, because of local optima issues.
 
-However, you can get much of the performance of a neural network with an approximation to backpropagation faster than O(|W|), meaning faster than the order of the number of members of the weight matrix, with sparsification. Here is the evidence, with a one-hidden-layer backpropagation multilayer perceptron.
+The reason why that would be important is that you can get much of the performance of a neural network with an approximation to backpropagation faster than O(|W|), meaning faster than the order of the number of members of the weight matrix, with sparsification. Here is the evidence, with a tinny little one-hidden-layer backpropagation multilayer perceptron.
 
 ![speed]()
 
 ![accuracy]()
 
-Note that I only sparsified the input-hidden weight layer, assuming that its weights were going to dominate. This is less true for the 64 and 128-hidden unit layers. You could probably get better performance with L1 regularization.
+Note that I only sparsified the input-hidden weight layer, assuming that its weights were going to dominate. This is less true for the 64 and 128-hidden unit layers. You could probably get better accuracy with L1 regularization.
+
+Why?
+--
 
 A neural network's weights, after the initialization but during and after training, is composed of numbers of radically unequal magnitude. If you take a histogram of the absolute value of all the weights, you will [see a remarkably heavy-tailed histogram](https://github.com/howonlee/mlp_gradient_histograms). But that high skew also means that nearly all of the weights are useless, and can be seen to be useless almost immediately. It also means that you should be suspicious of a positive feedback effect, which is indeed seen with the gradients.
 
