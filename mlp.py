@@ -158,6 +158,14 @@ class MLP:
             print len(self.weights[i].indices), " / ",\
                     reduce(lambda x, y: x * y, self.weights[i].shape)
 
+    def stupid_sparsify(self):
+        self.has_sparsified = True
+        for i in range(len(self.weights)-1): # not the softmax layer
+            new_sparsifier = self.sparsifiers[i].toarray()
+            self.sparsifiers[i] = sci_sp.coo_matrix(np.logical_and(npr.random(size=self.weights[i].shape) > 0.15, new_sparsifier))
+            self.weights[i][self.sparsifiers[i]] = 0
+            self.weights[i].eliminate_zeros()
+
     def sparsify(self):
         self.has_sparsified = True
         for i in range(len(self.weights)-1): # not the softmax layer
@@ -166,7 +174,7 @@ class MLP:
             thresh = np.percentile(
                                np.abs(
                                    self.weights[i].toarray()[np.abs(self.weights[i].toarray()) > 0]
-                                ), 40
+                                ), 50
                               )
             # add to sparsifier
             # kill based upon sparsifier, but in the actual backprop
@@ -247,11 +255,22 @@ def profile_expando_range():
     plt.hist(np.abs(network.weights[0].ravel()))
     plt.show()
 
-def test_expando():
+def test_sparsify():
     samples, dims = create_mnist_samples()
-    network = MLP(dims, 2, 10)
+    network = MLP(dims, 16, 10)
     num_epochs = 1
-    num_iters = 3000
+    num_sparsifications = 3
+    num_burnin = 200
+    num_iters = 30000
+    for i in xrange(num_burnin):
+        n = np.random.randint(samples.size)
+        network.propagate_forward(samples['input'][n])
+        network.propagate_backward(samples['output'][n])
+    # network.stupid_sparsify()
+    for x in xrange(num_sparsifications):
+        network.sparsify()
+    print "burnin finished"
+    network.check_sparsity()
     prev_time = time.clock()
     for epoch in xrange(num_epochs):
         for i in xrange(num_iters):
@@ -267,8 +286,7 @@ def test_expando():
             n = np.random.randint(samples.size)
             network.propagate_forward(samples['input'][n])
             network.propagate_backward(samples['output'][n])
-        # network.expando()
-        # network.sparsify()
+        # was also expanding, but that doesn't work as well
         network.check_sparsity()
     print test_network(network, samples[40000:40500])
 
