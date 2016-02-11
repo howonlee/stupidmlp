@@ -3,15 +3,15 @@ Stupid Optimization on MLP (or: Poking At Causation, part 3a / 3)
 
 TL;DR: You can get away with doing backpropagation much faster than you think with a ridiculously stupid trick: kill the small weights after a desultory burn-in period and do sparse outer products only on surviving weights.
 
-There's quite a few multilayer perceptron pruning approaches. I tend to believe that most are not stupid enough. Regularization-based approaches, for example, don't make the actual optimization process any faster, and the brute-force and sensitivity-based approaches _cannot_ make the actual optimization faster because they happen after learning. Cascade correlation and the like are not feasible, because of local optima issues.
+There's quite a few multilayer perceptron pruning approaches, mostly for regularization. I tend to believe that most are not stupid enough. Regularization-based approaches, for example, don't make the actual optimization process any faster, and the brute-force and sensitivity-based approaches _cannot_ make the actual optimization faster because they happen after learning. Cascade correlation and the like are not feasible, because of local optima issues.
 
-The reason why that would be important is that you can get much of the performance of a neural network with an approximation to backpropagation faster than O(|W|), meaning faster than the order of the number of members of the weight matrix, with sparsification. Here is the evidence, with a tinny little one-hidden-layer backpropagation multilayer perceptron.
+The reason why pruning _before_ learning would be important is that you can get much of the performance of a neural network with an approximation to backpropagation faster than O(|W|), meaning faster than the order of the number of members of the weight matrix, with sparsification. Here is the evidence, with a tinny little one-hidden-layer backpropagation multilayer perceptron.
 
 ![speed]()
 
 ![accuracy]()
 
-Note that I only sparsified the input-hidden weight layer, assuming that its weights were going to dominate. This is less true for the 64 and 128-hidden unit layers. You could probably get better accuracy with L1 regularization.
+Note that I only sparsified the input-hidden weight layer, assuming that its weights were going to dominate. This is less true for the 64 and 128-hidden unit layers. You could probably get better accuracy with L1 regularization. You can definitely get less ruthless with the sparsification.
 
 Why?
 --
@@ -30,7 +30,7 @@ Alternatively, you can think of this as a much stupider realization of the [Han 
 
 The next step, obviously, is to do this with RNNs proper, deeper nets, and to do it with GPU's. I probably won't pay for AWS GPU boxes, so RNNs it is. I may even get away without doing LSTM or anything like that, because the ability of LSTM's to get away with avoiding vanishing and exploding gradients seems quite like the ability of systems at criticality to get away with long correlation distances. Let us see if that thought holds up.
 
-Thanks to everyone I thanked on the [first installment of this thing](http://howonlee.github.io/2016/01/21/Poking-20At-20Causation1.html). I haven't written the second installment of this thing yet. I haven't done it with RNNs yet, so that is why this is installment 3a (3b will by the RNN's). Do not hesitate to contact me at hlee . howon at gmail if you have any thoughts or questions.
+Thanks to everyone I thanked on the [first installment of this thing](http://howonlee.github.io/2016/01/21/Poking-20At-20Causation1.html). I haven't written the second installment of this thing yet. I haven't done it with RNNs yet, so that is why this is installment 3a (3b will be the RNN's). Do not hesitate to contact me at hlee . howon at gmail if you have any thoughts or questions.
 
 Running the Code
 ---
