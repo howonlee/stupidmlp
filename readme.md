@@ -18,7 +18,7 @@ Why?
 
 A neural network's weights, after the initialization but during and after training, is composed of numbers of radically unequal magnitude. If you take a histogram of the absolute value of all the weights, you will [see a remarkably heavy-tailed histogram](https://github.com/howonlee/mlp_gradient_histograms). But that high skew also means that nearly all of the weights are useless, and can be seen to be useless almost immediately. It also means that you should be suspicious of a positive feedback effect, which is indeed seen with the gradients.
 
-I haven't found this cited in the literature after a long while searching, but the literature is sort of filled with [lots of articles](http://arxiv.org/abs/1506.02626) noting skew distributions in actual neurons in actual brains that you can squish, so that's probably worth mentioning.
+I haven't found this positive feedback phenomenon cited in the literature after a long while searching, but the literature is sort of filled with [lots of articles](http://arxiv.org/abs/1506.02626) noting skew distributions in actual neurons in actual brains that you can squish, so that's probably worth mentioning.
 
 Anyhow, the heavy tail phenomenon means that you can get away with a remarkably stupid optimization, if you have a sparse outer product operation. Just kill the comparatively-useless (lower magnitude) weights forever after a few "burn-in" iterations of SGD, and then go through with the much, much sparsified net using sparse outer products and get the rest of the iterations done much quicker. You still get most of the representational power of all of those hidden units, as you can see above.
 
