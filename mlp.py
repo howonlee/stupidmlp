@@ -217,9 +217,8 @@ def test_sparsify(num_epochs, num_sparsifications, num_burnin, num_iters, hidden
                 prev_time = time.clock()
                 network.check_sparsity()
                 print >> sys.stderr, "==============="
-            n = np.random.randint(samples.size)
-            network.propagate_forward(samples['input'][n])
-            network.propagate_backward(samples['output'][n])
+            network.propagate_forward(samples['input'][i])
+            network.propagate_backward(samples['output'][i])
         # was also expanding, but that doesn't work as well
         network.check_sparsity()
     print "num_epochs: ", str(num_epochs), " num_sparsifications: ", str(num_sparsifications), " num_burnin: ", str(num_burnin), " num_iters: ", str(num_iters), " hidden_units: ", str(hidden_units)
