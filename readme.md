@@ -5,13 +5,13 @@ TL;DR: You can get away with doing backpropagation much faster than you think wi
 
 There's quite a few multilayer perceptron pruning approaches, mostly for regularization. I tend to believe that most are not stupid enough. Regularization-based approaches, for example, don't make the actual optimization process any faster, and the brute-force and sensitivity-based approaches _cannot_ make the actual optimization faster because they happen after learning. Cascade correlation and the like are not feasible, because of local optima issues.
 
-The reason why pruning _before_ learning would be important is that you can get much of the performance of a neural network with an approximation to backpropagation faster than O(|W|), meaning faster than the order of the number of members of the weight matrix, with sparsification. Here is the evidence, with a tinny little one-hidden-layer backpropagation multilayer perceptron.
+The reason why pruning _before_ learning would be important is that you can get much of the performance of a neural network with an approximation to backpropagation faster than O(|W|), meaning faster than the order of the number of members of the weight matrix, with sparsification. Here is the evidence, with a tinny little one-hidden-layer backpropagation multilayer perceptron. Note the x-axes.
 
-![speed]()
+![accuracy](http://i.imgur.com/yRzEZZz.png)
 
-![accuracy]()
+![speed](http://i.imgur.com/UyP8m2u.png)
 
-Note that I only sparsified the input-hidden weight layer, assuming that its weights were going to dominate. This is less true for the 64 and 128-hidden unit layers. You could probably get better accuracy with L1 regularization. You can definitely get less ruthless with the sparsification.
+Note that I only sparsified the input-hidden weight layer, assuming that its weights were going to dominate. This is less true for the 64 and 128-hidden unit layers. You could probably get better accuracy with L1 regularization. You can definitely get less ruthless with the sparsification: for example, you can get the accuracy back to 0.91 on MNIST by doing 64 hidden units and sparsifying to about 7000 params total only.
 
 Why?
 --
