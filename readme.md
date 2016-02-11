@@ -35,4 +35,4 @@ Thanks to everyone I thanked on the [first installment of this thing](http://how
 Running the Code
 ---
 
-Download but don't unpack MNIST from here. I have code with CIFAR but I haven't been testing with it, but all you need to do with CIFAR is just download and unpack it into a directory named cifar-10-batches-py. Then just run `mlp.py`. The progress prints to stderr, the results to stdout, so I just pipe stdout to a file.
+Download but don't unpack MNIST from [here](https://github.com/mnielsen/neural-networks-and-deep-learning/blob/master/data/mnist.pkl.gz). I have code for dealing with [CIFAR-10]((https://www.cs.toronto.edu/~kriz/cifar.html) but I haven't been testing with it, but all you need to do with CIFAR is just download and unpack it into a directory named cifar-10-batches-py. Then just run `mlp.py`. The progress prints to stderr, the results to stdout, so I just pipe stdout to a file.
