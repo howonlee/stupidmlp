@@ -131,7 +131,8 @@ class MLP:
             print >> sys.stderr, len(self.weights[i].indices), " / ",\
                     reduce(lambda x, y: x * y, self.weights[i].shape)
 
-    def stupid_sparsify(self):
+    def random_sparsify(self):
+        # experimentation
         self.has_sparsified = True
         for i in range(len(self.weights)-1): # not the softmax layer
             new_sparsifier = self.sparsifiers[i].toarray()
@@ -228,8 +229,8 @@ def test_sparsify(num_epochs, num_sparsifications, num_burnin, num_iters, hidden
 if __name__ == '__main__':
     for x in [2,4,8,16,32,64]:
         test_sparsify(num_epochs=1, num_sparsifications=0, num_burnin=200, num_iters=30000, hidden_units=x)
-    # print "now sparsifying..."
+    print "now sparsifying..."
     for x in [0,1,2,3,4,5]:
         test_sparsify(num_epochs=1, num_sparsifications=x, num_burnin=200, num_iters=30000, hidden_units=128)
-    for x, y in zip([0,1,2,3,4,5], [4,8,16,32,64,128])
+    for x, y in zip([0,1,2,3,4,5], [4,8,16,32,64,128]):
         test_sparsify(num_epochs=1, num_sparsifications=x, num_burnin=200, num_iters=30000, hidden_units=y)
