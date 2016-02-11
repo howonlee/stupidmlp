@@ -28,7 +28,7 @@ If you need a more sophisticated reason, note that the directions in the high-di
 
 Alternatively, you can think of this as a much stupider realization of the [Han Pool Tran Dally 2015](http://arxiv.org/abs/1506.02626) paper, in that you can get away with doing all the pruning after very few iterations. Presumably, you can avoid doing all that work if those weights don't matter. (If I were a reviewer reading this thing as a paper, I would to be honest say that they scooped me)
 
-The next step, obviously, is to do this with RNNs proper, deeper nets, and to do it with GPU's. I probably won't pay for AWS GPU boxes, so RNNs it is. I may even get away without doing LSTM or anything like that, because the ability of LSTM's to get away with avoiding vanishing and exploding gradients seems quite like the ability of systems at criticality to get away with long correlation distances. Let us see if that thought holds up.
+The next step, obviously, is to do this with RNNs and proper, deeper nets, and to do it with GPUs. I probably won't pay for AWS GPU boxes, so RNNs it is. I may even get away without doing LSTM or anything like that, because the ability of LSTMs to get away with avoiding vanishing and exploding gradients seems quite like the ability of systems at criticality to get away with long correlation distances. Let us see if that thought holds up.
 
 Thanks to everyone I thanked on the [first installment of this thing](http://howonlee.github.io/2016/01/21/Poking-20At-20Causation1.html). I haven't written the second installment of this thing yet. I haven't done it with RNNs yet, so that is why this is installment 3a (3b will be the RNN's). Do not hesitate to contact me at hlee . howon at gmail if you have any thoughts or questions.
 
