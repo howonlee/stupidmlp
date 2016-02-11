@@ -3,7 +3,7 @@ Stupid Optimization on MLP (or: Poking At Causation, part 3a / 3)
 
 TL;DR: You can get away with doing backpropagation much faster than you think with a ridiculously stupid trick: kill the small weights after a desultory burn-in period and do sparse outer products only on surviving weights.
 
-There's quite a few multilayer perceptron pruning approaches, mostly for regularization. I tend to believe that most are not stupid enough. Regularization-based approaches, for example, don't make the actual optimization process any faster, and the brute-force and sensitivity-based approaches _cannot_ make the actual optimization faster because they happen after learning. Cascade correlation and the like are not feasible, because of local optima issues.
+There's quite a few multilayer perceptron pruning approaches, mostly for avoiding overfitting. I tend to believe that most are not stupid enough. Regularization-based approaches, for example, don't make the actual optimization process any faster, and the brute-force and sensitivity-based approaches _cannot_ make the actual optimization faster because they happen after learning. Cascade correlation and the like are not feasible, because of local optima issues.
 
 The reason why pruning _before_ learning would be important is that you can get much of the performance of a neural network with an approximation to backpropagation faster than O(|W|), meaning faster than the order of the number of members of the weight matrix, with sparsification. Here is the evidence, with a tinny little one-hidden-layer backpropagation multilayer perceptron. Note the x-axes.
 
